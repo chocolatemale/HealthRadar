@@ -4,10 +4,9 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const HomePage = () => {
   const progress = 0.73; // Example progress value
-
-  // Test values for the pie chart
-  const now = 880;
-  const target = 1200;
+  const today = 880; // Example value for today's calories
+  const target = 1200; // Example value for target calories
+  const dayStreak = 23; // Example value for days streak
 
   return (
     <View style={styles.container}>
@@ -18,14 +17,14 @@ const HomePage = () => {
         </TouchableOpacity>
       </View>
       <View style={styles.buttonRow}>
-        {['Target weight', 'Food information', 'Tips'].map((buttonLabel, index) => (
+        {['Target weight', 'NutritionFacts', 'Tips'].map((buttonLabel, index) => (
           <TouchableOpacity key={index} style={styles.bigButton}>
-            <Icon name={['weight', 'apple-alt', 'lightbulb'][index]} size={20} color="white" />
+            <Icon name={['weight', 'apple-alt', 'lightbulb'][index]} size={30} color="white" />
             <Text style={styles.buttonText}>{buttonLabel}</Text>
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity style={styles.goalContainer}>
+      <TouchableOpacity style={styles.targetProgressContainer}>
         <Text style={styles.targetProgress}>Target Progress</Text>
         <View style={styles.goalBarBackground}>
           <View style={{ ...styles.goalBar, width: `${progress * 100}%` }}>
@@ -33,14 +32,15 @@ const HomePage = () => {
           </View>
         </View>
       </TouchableOpacity>
-      <View style={styles.infoCard}>
-        <Text>Calories taken today/goal:</Text>
+      <TouchableOpacity style={styles.caloriesTodayContainer}>
+        <Text style={styles.caloriesToday}>Calories Today</Text>
         {/* Add the pie chart component here */}
         <Text style={styles.placeholderChart}>[Pie Chart Placeholder]</Text>
-      </View>
-      <View style={styles.streakCard}>
-        <Text>Days streak: 23</Text>
-      </View>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.streakCard}>
+        <Text style={styles.daysStreak}>Days Streak</Text>
+        <Text style={styles.streakNumber}>{dayStreak}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -84,16 +84,22 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff',
+    marginTop: 5,
   },
-  goalContainer: {
+  targetProgressContainer: {
     backgroundColor: '#ffffff',
-    padding: 10,
+    padding: 20,
     borderRadius: 10,
     marginTop: 10,
+    margin: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 3,
   },
   targetProgress: {
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 10,
   },
   goalBarBackground: {
     backgroundColor: '#ADD8E6',
@@ -113,15 +119,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     paddingRight: 5,
   },
-  infoCard: {
-    padding: 15,
+  caloriesTodayContainer: {
+    padding: 20,
     backgroundColor: '#ffffff',
     borderRadius: 10,
     margin: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 3,
+  },
+  caloriesToday: {
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   placeholderChart: {
     textAlign: 'center',
@@ -138,6 +148,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
     shadowRadius: 3,
+    alignItems: 'center',
+  },
+  daysStreak: {
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  streakNumber: {
+    fontSize: 48,
+    color: '#3498db',
   },
 });
 

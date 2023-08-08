@@ -1,21 +1,14 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import {
-  API_KEY,
-  AUTH_DOMAIN,
-  PROJECT_ID,
-  STORAGE_BUCKET,
-  MESSAGING_SENDER_ID,
-  APP_ID,
-} from "@env";
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import ENV from '../environment'; // Adjust the path to the location of environment.js
 
 const firebaseConfig = {
-  apiKey: API_KEY,
-  authDomain: AUTH_DOMAIN,
-  projectId: PROJECT_ID,
-  storageBucket: STORAGE_BUCKET,
-  messagingSenderId: MESSAGING_SENDER_ID,
-  appId: APP_ID,
+  apiKey: ENV.API_KEY,
+  authDomain: ENV.AUTH_DOMAIN,
+  projectId: ENV.PROJECT_ID,
+  storageBucket: ENV.STORAGE_BUCKET,
+  messagingSenderId: ENV.MESSAGING_SENDER_ID,
+  appId: ENV.APP_ID,
 };
 
 // Initialize Firebase
