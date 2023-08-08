@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
-const HomePage = () => {
+const HomePage = ({ navigation }) => {
   const progress = 0.73; // Example progress value
   const today = 880; // Example value for today's calories
   const target = 1200; // Example value for target calories
@@ -24,7 +24,10 @@ const HomePage = () => {
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity style={styles.targetProgressContainer}>
+      <TouchableOpacity
+        style={styles.targetProgressContainer}
+        onPress={() => navigation.navigate('TargetProgress')}
+      >
         <Text style={styles.targetProgress}>Target Progress</Text>
         <View style={styles.goalBarBackground}>
           <View style={{ ...styles.goalBar, width: `${progress * 100}%` }}>
@@ -32,12 +35,17 @@ const HomePage = () => {
           </View>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.caloriesTodayContainer}>
+      <TouchableOpacity
+        style={styles.caloriesTodayContainer}
+        onPress={() => navigation.navigate('ViewCalories')}
+      >
         <Text style={styles.caloriesToday}>Calories Today</Text>
-        {/* Add the pie chart component here */}
         <Text style={styles.placeholderChart}>[Pie Chart Placeholder]</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.streakCard}>
+      <TouchableOpacity
+        style={styles.streakCard}
+        onPress={() => navigation.navigate('DaysStreak')}
+      >
         <Text style={styles.daysStreak}>Days Streak</Text>
         <Text style={styles.streakNumber}>{dayStreak}</Text>
       </TouchableOpacity>
