@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faPlus, faTrash, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 
-const ViewCaloriesRecord = () => {
+const ViewCaloriesRecord = ({ navigation }) => { // Include the navigation prop
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [foodEntries, setFoodEntries] = useState([]);
 
@@ -22,24 +22,16 @@ const ViewCaloriesRecord = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Calories Record</Text>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('AddCaloriesEntry')} // Navigate to the AddCaloriesEntry screen
+        >
           <FontAwesomeIcon icon={faPlus} size={20} color="white" />
         </TouchableOpacity>
       </View>
 
       {/* List of Food Entries */}
       <View style={styles.entriesContainer}>
-        {/* Display food entries here */}
-        {/* {foodEntries.map((entry, index) => (
-          <View key={index} style={styles.entry}>
-            <Text>{entry.description}</Text>
-            <Text>{entry.calories}</Text>
-            <TouchableOpacity onPress={() => handleDeleteEntry(index)}>
-              <FontAwesomeIcon icon={faTrash} size={20} color="red" />
-            </TouchableOpacity>
-          </View>
-        ))} */}
-
         {/* Placeholder for food entries */}
         <Text style={styles.placeholderText}>No food entries yet</Text>
       </View>
@@ -55,7 +47,6 @@ const ViewCaloriesRecord = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

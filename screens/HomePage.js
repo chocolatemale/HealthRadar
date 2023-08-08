@@ -39,10 +39,10 @@ const HomePage = ({ navigation }) => {
       <TouchableOpacity
         style={styles.caloriesTodayContainer}
         onPress={() => {
-          navigation.navigate('Today');
+          navigation.navigate('Daily');
         }}
       >
-        <Text style={styles.caloriesToday}>Calories Today</Text>
+        <Text style={styles.caloriesToday}>Calories Daily</Text>
         <Text style={styles.placeholderChart}>[Pie Chart Placeholder]</Text>
       </TouchableOpacity>
       <TouchableOpacity
