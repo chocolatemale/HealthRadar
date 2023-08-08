@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faEnvelope, faWeight, faAppleAlt, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 
 const HomePage = ({ navigation }) => {
   const progress = 0.73; // Example progress value
@@ -13,13 +14,13 @@ const HomePage = ({ navigation }) => {
       <View style={styles.searchBarContainer}>
         <TextInput placeholder="Search" style={styles.searchBar} />
         <TouchableOpacity style={styles.mailButton}>
-          <Icon name="envelope" size={20} color="white" />
+          <FontAwesomeIcon icon={faEnvelope} size={20} color="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.buttonRow}>
         {['Target weight', 'NutritionFacts', 'Tips'].map((buttonLabel, index) => (
           <TouchableOpacity key={index} style={styles.bigButton}>
-            <Icon name={['weight', 'apple-alt', 'lightbulb'][index]} size={30} color="white" />
+            <FontAwesomeIcon icon={[faWeight, faAppleAlt, faLightbulb][index]} size={30} color="white" />
             <Text style={styles.buttonText}>{buttonLabel}</Text>
           </TouchableOpacity>
         ))}
@@ -37,7 +38,7 @@ const HomePage = ({ navigation }) => {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.caloriesTodayContainer}
-        onPress={() => navigation.navigate('ViewCalories')}
+        onPress={() => navigation.navigate('Daily Details')}
       >
         <Text style={styles.caloriesToday}>Calories Today</Text>
         <Text style={styles.placeholderChart}>[Pie Chart Placeholder]</Text>

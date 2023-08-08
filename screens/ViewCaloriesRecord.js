@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faPlus, faTrash, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 
 const ViewCaloriesRecord = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -20,9 +21,9 @@ const ViewCaloriesRecord = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>View Calories</Text>
+        <Text style={styles.headerText}>Calories Record</Text>
         <TouchableOpacity style={styles.addButton}>
-          <Icon name="plus" size={20} color="white" />
+          <FontAwesomeIcon icon={faPlus} size={20} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -34,7 +35,7 @@ const ViewCaloriesRecord = () => {
             <Text>{entry.description}</Text>
             <Text>{entry.calories}</Text>
             <TouchableOpacity onPress={() => handleDeleteEntry(index)}>
-              <Icon name="trash" size={20} color="red" />
+              <FontAwesomeIcon icon={faTrash} size={20} color="red" />
             </TouchableOpacity>
           </View>
         ))} */}
@@ -48,7 +49,7 @@ const ViewCaloriesRecord = () => {
         <Text style={styles.totalText}>Total Calories: {totalCalories}</Text>
         <TouchableOpacity style={styles.datePicker} onPress={() => console.log('Date Picker')}>
           <Text>{selectedDate.toDateString()}</Text>
-          <Icon name="calendar-alt" size={20} color="black" />
+          <FontAwesomeIcon icon={faCalendarAlt} size={20} color="black" />
         </TouchableOpacity>
       </View>
     </View>
