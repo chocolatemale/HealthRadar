@@ -38,7 +38,9 @@ const HomePage = ({ navigation }) => {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.caloriesTodayContainer}
-        onPress={() => navigation.navigate('Daily Details')}
+        onPress={() => {
+          navigation.navigate('Today');
+        }}
       >
         <Text style={styles.caloriesToday}>Calories Today</Text>
         <Text style={styles.placeholderChart}>[Pie Chart Placeholder]</Text>
