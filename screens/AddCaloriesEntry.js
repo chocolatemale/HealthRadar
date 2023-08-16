@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faCalendarAlt, faUtensils, faWeight } from '@fortawesome/free-solid-svg-icons';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faCalendarAlt,
+  faUtensils,
+  faWeight,
+} from "@fortawesome/free-solid-svg-icons";
 
-const AddCaloriesEntry = () => {
+const AddCaloriesEntry = ({ foodRepo, navigation }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [food, setFood] = useState('');
-  const [amount, setAmount] = useState('');
+  const [food, setFood] = useState("");
+  const [amount, setAmount] = useState("");
 
   const handleConfirm = () => {
-    // Handle the confirmation logic here
+    foodRepo.addObject({ name: food, calories: amount });
+    navigation.navigate("ViewCaloriesRecord");
   };
 
   return (
@@ -59,18 +70,18 @@ const AddCaloriesEntry = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f4',
+    backgroundColor: "#f4f4f4",
     padding: 20,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
     borderRadius: 15,
     paddingHorizontal: 15,
     paddingVertical: 15,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
@@ -82,19 +93,19 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   confirmButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: "#3498db",
     paddingVertical: 15,
     borderRadius: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 3,
   },
   confirmButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
     fontSize: 18,
   },
 });
