@@ -22,34 +22,74 @@ import {
   faBurn,
 } from "@fortawesome/free-solid-svg-icons";
 import * as ImagePicker from 'expo-image-picker';
+import { Alert } from 'react-native';
 
 
-const AddCaloriesEntry = ({ foodRepo, navigation }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [food, setFood] = useState("");
-  const [amount, setAmount] = useState("");
-  const [location, setLocation] = useState(null);
-  const [image, setImage] = useState(null);
-  const [weight, setWeight] = useState("");
+const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
+  const selectedEntry = route.params?.selectedEntry;
+  const [selectedDate, setSelectedDate] = useState(selectedEntry ? new Date(selectedEntry.date.toDate()) : new Date());
+  const [food, setFood] = useState(selectedEntry ? selectedEntry.name : "");
+  const [amount, setAmount] = useState(selectedEntry ? selectedEntry.calories : "");
+  const [location, setLocation] = useState(selectedEntry ? selectedEntry.location : null);
+  const [image, setImage] = useState(selectedEntry ? selectedEntry.image : null);
+  const [weight, setWeight] = useState(selectedEntry ? selectedEntry.weight : "");  
   const [datePickerMode, setDatePickerMode] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
 
 
 
   const handleConfirm = async () => {
+    // Check if food (description) or calories is empty
+    if (!food.trim() || !amount.trim()) {
+        Alert.alert('Validation Error', 'Description and calories cannot be empty.');
+        return;
+    }
+
+    // If weight is empty, default it to 0
+    const finalWeight = weight.trim() ? weight : "0";
+
     const entry = {
-      date: selectedDate,
-      name: food,
-      calories: amount,
-      weight: weight,
-      location: location,
-      image: image
+        date: selectedDate,
+        name: food,
+        calories: amount,
+        weight: finalWeight,
+        location: location,
+        image: image
     };
+
     await foodRepo.addObject(entry);
     console.log("Trying to add this entry:", entry);
     navigation.navigate("ViewCaloriesRecord");
   };
 
+  const handleDelete = () => {
+      Alert.alert(
+          'Delete Entry', // Title of the alert
+          'Are you sure you want to delete this entry?', // Message in the alert
+          [
+              {
+                  text: 'Cancel',
+                  onPress: () => console.log('Delete action cancelled'), // Optionally handle the cancel press
+                  style: 'cancel',
+              },
+              {
+                  text: 'Delete',
+                  onPress: async () => {
+                      try {
+                          await foodRepo.removeObject(selectedEntry.id); 
+                          navigation.navigate("ViewCaloriesRecord");
+                      } catch (error) {
+                          console.error("Error deleting entry:", error);
+                          // Optionally, inform the user about the error with a Toast or Alert
+                      }
+                  },
+                  style: 'destructive', // This will make the button red on iOS
+              },
+          ],
+          { cancelable: true } // This allows the user to cancel the alert by tapping outside of it
+      );
+  };
+  
   const takePicture = async () => {
     let { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
@@ -227,6 +267,14 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
       <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
         <Text style={styles.confirmButtonText}>Confirm</Text>
       </TouchableOpacity>
+      
+      {/* Delete Button */}
+      {selectedEntry && (
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      )}
+
     </ScrollView>
   );
 };
@@ -268,6 +316,23 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   confirmButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  deleteButton: {
+    backgroundColor: "#e74c3c",
+    paddingVertical: 15,
+    borderRadius: 15,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
+    marginTop: 15,
+  },
+  deleteButtonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 18,

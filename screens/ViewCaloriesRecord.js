@@ -20,6 +20,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
   const isFocused = useIsFocused();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerMode, setDatePickerMode] = useState("date");
+  const [selectedEntry, setSelectedEntry] = useState(null);
   const onChangeDate = (event, selectedDate) => {
     setShowDatePicker(false); 
     if (selectedDate) {
@@ -30,8 +31,6 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
   useEffect(() => {
     if (isFocused) {
       foodRepo.getAllObjects().then((entries) => {
-           console.log("Fetched entries:", entries);
-
            // Here's where you'll adjust the filtering logic
         const filteredEntries = entries.filter(entry => {
             // Convert Firestore timestamp to JavaScript Date
@@ -75,7 +74,13 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
           <Text style={styles.placeholderText}>No food entries yet</Text>
         ) : (
           foodEntries.map((entry) => (
-            <View key={entry.id} style={styles.entry}>
+            <TouchableOpacity 
+            key={entry.id} 
+            onPress={() => {
+              setSelectedEntry(entry);
+              navigation.navigate("AddCaloriesEntry", { selectedEntry: entry });
+            }}
+            style={styles.entry}>
               <View style={styles.leftContainer}>
                 <Text style={styles.descriptionText}>{entry.name}</Text>
                 <Text style={styles.weightText}>{entry.weight}g</Text>
@@ -125,7 +130,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
               >
                 {entry.calories} cal
               </Text>
-            </View>
+            </TouchableOpacity>
           ))          
         )}
       </ScrollView>
