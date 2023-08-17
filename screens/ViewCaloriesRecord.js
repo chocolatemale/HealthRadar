@@ -165,6 +165,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -1,45 +1,48 @@
-usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]
-           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
-           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
-           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
-           [--super-prefix=<path>] [--config-env=<name>=<envvar>]
-           <command> [<args>]
+# Calories Record App
 
-These are common Git commands used in various situations:
+This application allows users to track their food and calorie intake. Users can add food entries along with details such as the date of consumption, description of the food, weight, calories, location where it was consumed, and an optional image. 
 
-start a working area (see also: git help tutorial)
-   clone     Clone a repository into a new directory
-   init      Create an empty Git repository or reinitialize an existing one
+## Functionalities in this Iteration:
 
-work on the current change (see also: git help everyday)
-   add       Add file contents to the index
-   mv        Move or rename a file, a directory, or a symlink
-   restore   Restore working tree files
-   rm        Remove files from the working tree and from the index
+- **Camera use:** Implemented. Users can take a picture or select one from their media library.
+- **Location use:** Implemented. Users can capture their current location.
+- **Authentication:** Not implemented in this iteration.
+- **Notification:** Not implemented in this iteration.
+- **External API use:** Not implemented in this iteration.
 
-examine the history and state (see also: git help revisions)
-   bisect    Use binary search to find the commit that introduced a bug
-   diff      Show changes between commits, commit and working tree, etc
-   grep      Print lines matching a pattern
-   log       Show commit logs
-   show      Show various types of objects
-   status    Show the working tree status
+## Getting Started:
 
-grow, mark and tweak your common history
-   branch    List, create, or delete branches
-   commit    Record changes to the repository
-   merge     Join two or more development histories together
-   rebase    Reapply commits on top of another base tip
-   reset     Reset current HEAD to the specified state
-   switch    Switch branches
-   tag       Create, list, delete or verify a tag object signed with GPG
+1. Clone the repository.
+2. Install the required packages using the `npm install` or `yarn install` command.
+3. Run the app using the appropriate command for your platform (e.g., `react-native run-ios` or `react-native run-android`).
 
-collaborate (see also: git help workflows)
-   fetch     Download objects and refs from another repository
-   pull      Fetch from and integrate with another repository or a local branch
-   push      Update remote refs along with associated objects
+## Key Features:
 
-'git help -a' and 'git help -g' list available subcommands and some
-concept guides. See 'git help <command>' or 'git help <concept>'
-to read about a specific subcommand or concept.
-See 'git help git' for an overview of the system.
+### Add Food Entry
+- Users can input the name of the food, weight, and calories.
+- Users have the option to take a photo or select one from the library.
+- Users can capture their current location.
+
+### View Calories Record
+- See a list of all added entries.
+- Total calories consumed are displayed at the top.
+- Users can tap on an entry to view more details or edit the entry.
+
+## Libraries & Dependencies:
+
+- `react-native`
+- `@react-native-community/datetimepicker`
+- `react-native-maps`
+- `expo-location`
+- `@fortawesome/react-native-fontawesome`
+- `expo-image-picker`
+
+## Future Enhancements:
+
+- Integrate user authentication for personalized experiences.
+- Implement notifications to remind users to add their meals.
+- Integrate with external APIs for better food and calorie recommendations.
+
+## Feedback:
+
+If you have any feedback or issues, please open a GitHub issue or submit a pull request. We appreciate your contributions!
