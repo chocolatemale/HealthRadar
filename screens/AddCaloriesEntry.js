@@ -11,7 +11,6 @@ import {
   Image,
 } from "react-native";
 import * as Location from 'expo-location';
-import { Camera } from 'expo-camera';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faCalendarAlt,
@@ -23,7 +22,6 @@ import {
   faBurn,
 } from "@fortawesome/free-solid-svg-icons";
 import * as ImagePicker from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library';
 
 
 const AddCaloriesEntry = ({ foodRepo, navigation }) => {
@@ -32,8 +30,6 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
   const [amount, setAmount] = useState("");
   const [location, setLocation] = useState(null);
   const [image, setImage] = useState(null);
-  const [cameraRef, setCameraRef] = useState(null); // new state for camera reference
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [weight, setWeight] = useState("");
   const [datePickerMode, setDatePickerMode] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -42,6 +38,7 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
 
   const handleConfirm = async () => {
     const entry = {
+      date: selectedDate,
       name: food,
       calories: amount,
       weight: weight,
@@ -49,6 +46,7 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
       image: image
     };
     await foodRepo.addObject(entry);
+    console.log("Trying to add this entry:", entry);
     navigation.navigate("ViewCaloriesRecord");
   };
 
@@ -140,35 +138,39 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
       </View>
 
       {/* Calories Input */}
-      <View style={styles.inputContainer}>
-        <FontAwesomeIcon icon={faBurn} size={20} color="black" />
-        <TextInput
-          style={styles.input}
-          placeholder="Calories"
-          value={String(amount)}  // convert number to string
-          onChangeText={(text) => {
-            if (text === "" || /^[0-9]+$/.test(text)) {
-              setAmount(text);
-            }
-          }}
-          keyboardType="numeric"
-        />
-      </View>
+      <View style={styles.rowContainer}>
+        {/* Calories Input */}
+        <View style={{ ...styles.inputContainer, flex: 1 }}>
+            <FontAwesomeIcon icon={faBurn} size={20} color="black" />
+            <TextInput
+                style={styles.input}
+                placeholder="Calories"
+                value={String(amount)}
+                onChangeText={(text) => {
+                    if (text === "" || /^[0-9]+$/.test(text)) {
+                        setAmount(text);
+                    }
+                }}
+                keyboardType="numeric"
+            />
+        </View>
 
-      <View style={styles.inputContainer}>
-          <FontAwesomeIcon icon={faWeight} size={20} color="black" />
-          <TextInput
-            style={styles.input}
-            placeholder="Weight (g)"
-            value={String(weight)} // convert number to string
-            onChangeText={(text) => {
-              if (text === "" || /^[0-9]+$/.test(text)) {
-                setWeight(text);
-              }
-            }}
-            keyboardType="numeric"
-          />
-      </View>
+        {/* Weight Input */}
+        <View style={{ ...styles.inputContainer, flex: 1, marginLeft: 10 }}>
+            <FontAwesomeIcon icon={faWeight} size={20} color="black" />
+            <TextInput
+                style={styles.input}
+                placeholder="Weight (g)"
+                value={String(weight)}
+                onChangeText={(text) => {
+                    if (text === "" || /^[0-9]+$/.test(text)) {
+                        setWeight(text);
+                    }
+                }}
+                keyboardType="numeric"
+            />
+        </View>
+    </View>
 
       {/* Location Button */}
       <TouchableOpacity style={styles.actionButton} onPress={captureLocation}>
@@ -197,14 +199,25 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
 
       {/* Camera preview and button */}
 
-      <TouchableOpacity style={styles.actionButton} onPress={takePicture}>
-        <FontAwesomeIcon icon={faCamera} size={20} color="black" />
-        <Text style={styles.actionText}>Take Picture</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.actionButton} onPress={selectPictureFromLibrary}>
-        <FontAwesomeIcon icon={faImages} size={20} color="black" />
-        <Text style={styles.actionText}>Select from Library</Text>
-      </TouchableOpacity>
+      <View style={styles.rowContainer}>
+          {/* Take Picture Button */}
+          <TouchableOpacity 
+              style={{ ...styles.actionButton, flex: 1 }} 
+              onPress={takePicture}
+          >
+              <FontAwesomeIcon icon={faCamera} size={20} color="black" />
+              <Text style={styles.actionText}>Take Picture</Text>
+          </TouchableOpacity>
+
+          {/* Select from Library Button */}
+          <TouchableOpacity 
+              style={{ ...styles.actionButton, flex: 1, marginLeft: 10 }} 
+              onPress={selectPictureFromLibrary}
+          >
+              <FontAwesomeIcon icon={faImages} size={20} color="black" />
+              <Text style={styles.actionText}>Select from Library</Text>
+          </TouchableOpacity>
+      </View>
       
       {image && (
         <Image source={{ uri: image }} style={styles.imagePreview} />
@@ -291,9 +304,13 @@ const styles = StyleSheet.create({
   },
   map: {
     width: '100%',
-    height: 200,
-    marginBottom: 20,
-  }
+    height: 100,
+    marginBottom: 10,
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
 });
 
 export default AddCaloriesEntry;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faPlus,
@@ -7,6 +7,10 @@ import {
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { useIsFocused } from "@react-navigation/native";
+import DateTimePicker from '@react-native-community/datetimepicker';
+import MapView, { Marker } from 'react-native-maps';
+import { Linking, Platform } from 'react-native';
+import { ScrollView } from 'react-native';
 
 const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
   // Include the navigation prop
@@ -14,12 +18,32 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
   const [foodEntries, setFoodEntries] = useState([]);
   const [totalCalories, setTotalCalories] = useState(0);
   const isFocused = useIsFocused();
-
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState("date");
+  const onChangeDate = (event, selectedDate) => {
+    setShowDatePicker(false); 
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+    }
+  };
+  
   useEffect(() => {
     if (isFocused) {
-      foodRepo.getAllObjects().then(setFoodEntries);
+      foodRepo.getAllObjects().then((entries) => {
+           console.log("Fetched entries:", entries);
+
+           // Here's where you'll adjust the filtering logic
+        const filteredEntries = entries.filter(entry => {
+            // Convert Firestore timestamp to JavaScript Date
+            const entryDate = new Date(entry.date.seconds * 1000 + entry.date.nanoseconds / 1000000);
+            
+            return entryDate.toDateString() === selectedDate.toDateString();
+        });
+
+        setFoodEntries(filteredEntries);
+      });
     }
-  }, [foodRepo, isFocused]);
+  }, [foodRepo, isFocused, selectedDate]);
 
   useEffect(() => {
     setTotalCalories(
@@ -45,32 +69,94 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
       </View>
 
       {/* List of Food Entries */}
-      <View style={styles.entriesContainer}>
+      <ScrollView style={styles.entriesContainer}>
         {/* Placeholder for food entries */}
-        {foodEntries.size == 0 ? (
+        {foodEntries.length == 0 ? (
           <Text style={styles.placeholderText}>No food entries yet</Text>
         ) : (
           foodEntries.map((entry) => (
             <View key={entry.id} style={styles.entry}>
-              <Text>{entry.name}</Text>
-              <Text>{entry.calories}</Text>
-              {entry.imageUri && <Image source={{ uri: entry.imageUri }} style={styles.entryImage} />}
-              {entry.location && <Text>Location: {entry.location.latitude}, {entry.location.longitude}</Text>}
+              <View style={styles.leftContainer}>
+                <Text style={styles.descriptionText}>{entry.name}</Text>
+                <Text style={styles.weightText}>{entry.weight}g</Text>
+              </View>
+          
+              {entry.location && (
+                <TouchableOpacity
+                  style={styles.mapContainer}
+                  onPress={() => {
+                    // Determine the platform to provide appropriate map URL
+                    const url = Platform.OS === 'ios' 
+                      ? `http://maps.apple.com/?ll=${entry.location.latitude},${entry.location.longitude}`
+                      : `geo:${entry.location.latitude},${entry.location.longitude}`;
+          
+                    Linking.openURL(url);
+                  }}
+                >
+                  <MapView
+                    style={styles.mapStyle}
+                    initialRegion={{
+                      latitude: entry.location.latitude,
+                      longitude: entry.location.longitude,
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                    rotateEnabled={false}
+                    pitchEnabled={false}
+                    cacheEnabled={true}
+                  >
+                    <Marker
+                      coordinate={{
+                        latitude: entry.location.latitude,
+                        longitude: entry.location.longitude,
+                      }}
+                    />
+                  </MapView>
+                </TouchableOpacity>
+              )}
+          
+              <Text 
+                style={[
+                  styles.caloriesText, 
+                  { color: parseInt(entry.calories) >= 100 ? 'red' : 'green' }
+                ]}
+              >
+                {entry.calories} cal
+              </Text>
             </View>
-          ))
+          ))          
         )}
-      </View>
+      </ScrollView>
 
       {/* Total Calories */}
-      <View style={styles.toxtalContainer}>
-        <Text style={styles.totalText}>Total Calories: {totalCalories}</Text>
-        <TouchableOpacity
-          style={styles.datePicker}
-          onPress={() => console.log("Date Picker")}
-        >
-          <Text>{selectedDate.toDateString()}</Text>
-          <FontAwesomeIcon icon={faCalendarAlt} size={20} color="black" />
-        </TouchableOpacity>
+      <View style={styles.totalContainer}>
+        <View style={styles.inputContainer}>
+            <FontAwesomeIcon icon={faCalendarAlt} size={20} color="black" />
+            {datePickerMode ? (
+                <DateTimePicker
+                    value={selectedDate}
+                    mode={datePickerMode}
+                    is24Hour={true}
+                    display="default"
+                    onChange={(event, selectedDate) => {
+                        setDatePickerMode(null);
+                        if (selectedDate) {
+                            setSelectedDate(selectedDate);
+                        }
+                    }}
+                />
+            ) : (
+                <TouchableOpacity onPress={() => setDatePickerMode('date')}>
+                    <Text style={styles.input}>{selectedDate.toDateString()}</Text>
+                </TouchableOpacity>
+            )}
+        </View>
+
+        <View style={styles.caloriesContainer}>
+          <Text style={styles.totalText}>Calories: {totalCalories}</Text>
+        </View>
       </View>
     </View>
   );
@@ -85,8 +171,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
-  },
+    marginBottom: 10, // Adjust this value to get desired distance
+    marginTop: 10,    // Adjust this value to match the above one
+  },  
   headerText: {
     fontSize: 24,
     fontWeight: "bold",
@@ -103,14 +190,17 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 20,
   },
-  entry: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    paddingVertical: 10,
+  entryImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40, // This will make it circular
+    marginVertical: 10,
+    alignSelf: 'center', // This will center the image
   },
+  entryText: {
+    marginVertical: 5,
+    fontSize: 16,
+  },  
   placeholderText: {
     textAlign: "center",
     color: "#999",
@@ -125,20 +215,94 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginBottom: 20,
+    height: 50,
+  },
+  calendarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  caloriesContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   totalText: {
     fontWeight: "bold",
+    fontSize: 18,
+    width: 200,  // Adjusted width to accommodate up to 5 digits
+    textAlign: 'right',
   },
   datePicker: {
     flexDirection: "row",
     alignItems: "center",
   },
-  entryImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
+  entry: {
+    flexDirection: "row",
+    backgroundColor: 'white',
+    padding: 15,
     marginVertical: 10,
-  },  
+    borderRadius: 10,
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
+    height:80,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  leftContainer: {
+    flexDirection: 'column',
+    flex: 2.5, // Allocating space for the description and weight texts
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1.5, // Adjusting flex here ensures the right container doesn't occupy more space than necessary
+  },
+  descriptionContainer: {
+    flexDirection: 'column',
+  },
+  descriptionText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  weightText: {
+    fontSize: 14,
+  },
+  caloriesText: {
+    fontSize: 18,
+    marginLeft: 10,
+    width: 75,  // Setting a width to accommodate a maximum of 3 digits
+    color: 'green', // default color
+    textAlign: 'right',  // Align the text to the right
+  },
+  mapStyle: {
+    width: 40,
+    height: 40,
+    marginVertical: 5,
+    borderRadius: 10,
+  },
+  mapContainer: {
+    marginRight: 1,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  input: {
+    marginLeft: 10,
+    color: 'black',
+    fontSize: 16,
+  },
 });
 
 export default ViewCaloriesRecord;
