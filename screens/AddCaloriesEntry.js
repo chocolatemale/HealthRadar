@@ -57,10 +57,29 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
         image: image
     };
 
-    await foodRepo.addObject(entry);
-    console.log("Trying to add this entry:", entry);
+    if (selectedEntry) {
+        // We are in update mode
+        try {
+            await foodRepo.updateObject(selectedEntry.id, entry);  // Assuming this is the update method
+            console.log("Updated the entry:", entry);
+        } catch (error) {
+            console.error("Error updating entry:", error);
+            // Optionally, inform the user about the error with a Toast or Alert
+        }
+    } else {
+        // We are in creation mode
+        try {
+            await foodRepo.addObject(entry);
+            console.log("Added a new entry:", entry);
+        } catch (error) {
+            console.error("Error adding new entry:", error);
+            // Optionally, inform the user about the error with a Toast or Alert
+        }
+    }
+
     navigation.navigate("ViewCaloriesRecord");
-  };
+};
+
 
   const handleDelete = () => {
       Alert.alert(
