@@ -9,7 +9,8 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { database } from "../firebase";
+import { database, auth } from "../firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 
 const USER_DB_NAME = "user";
 
@@ -33,38 +34,45 @@ export const getUserRepo = (userId) => {
       return null;
     },
     async login(email, password) {
-      const user = await this.getUserByEmail(email);
-      if (user && user.password == password) {
-        return user.id;
-      }
-      return null;
-    },
-    async signin(email, password, passwordComfirmed, phoneNumber, username) {
-      const existingUser = await this.getUserByEmail(email);
-      if (existingUser) {
-        // user already exist
-        return;
-      }
-      if (passwordComfirmed !== password) {
-        // password not match
-        return;
-      }
-      const objectInput = {
-        email,
-        password,
-        phoneNumber,
-        username,
-      };
       try {
-        const docRef = await addDoc(
-          collection(database, USER_DB_NAME),
-          objectInput
-        );
-      } catch (e) {
-        console.log(e);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        if (user) {
+          return user.uid;  // Return Firebase User UID
+        }
+      } catch (error) {
+        console.log(error);
+        return null;
       }
-      return objectInput;
     },
+    
+    async signin(email, password, passwordConfirmed) {
+      try {
+        if (password !== passwordConfirmed) {
+          console.log("Passwords do not match!");
+          return null;
+        }
+        
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+    
+        if (user) {
+          // Now, store other user details in Firestore
+          const objectInput = {
+            email: user.email,
+            uid: user.uid, // User UID from Firebase Auth
+            // phoneNumber, // Uncomment when you want to include phone number
+            // username,    // Uncomment when you want to include username
+          };
+          const docRef = await addDoc(collection(database, USER_DB_NAME), objectInput);
+          return objectInput;
+        }
+      } catch (error) {
+        console.log(error);
+        return null;
+      }
+    },
+    
     async updateUser(id, updatedUser) {
       const entryRef = doc(database, USER_DB_NAME, id);
       const object = await getDoc(entryRef);

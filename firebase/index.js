@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import ENV from '../environment'; // Adjust the path to the location of environment.js
+import { getAuth } from 'firebase/auth';  // Add this line
+import ENV from '../environment';
 
 const firebaseConfig = {
   apiKey: ENV.API_KEY,
@@ -11,8 +12,8 @@ const firebaseConfig = {
   appId: ENV.APP_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getFirestore(app);
+const auth = getAuth(app);  // Add this line
 
-export { database };
+export { database, auth };  // Update this line
