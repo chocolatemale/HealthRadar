@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-
+import { ScrollView } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import MapView, { Marker } from 'react-native-maps';
 import {
   View,
   Text,
@@ -18,6 +20,7 @@ import {
   faCamera,
   faMapMarkerAlt,
   faImages,
+  faBurn,
 } from "@fortawesome/free-solid-svg-icons";
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
@@ -30,11 +33,18 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
   const [location, setLocation] = useState(null);
   const [image, setImage] = useState(null);
   const [cameraRef, setCameraRef] = useState(null); // new state for camera reference
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [weight, setWeight] = useState("");
+  const [datePickerMode, setDatePickerMode] = useState(null);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
+
 
   const handleConfirm = async () => {
     const entry = {
       name: food,
       calories: amount,
+      weight: weight,
       location: location,
       image: image
     };
@@ -61,14 +71,18 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
   };
 
   const captureLocation = async () => {
+    setLoadingLocation(true);
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      alert('Permission to access location was denied');
-      return;
+        alert('Permission to access location was denied');
+        setLoadingLocation(false);
+        return;
     }
     let loc = await Location.getCurrentPositionAsync({});
     setLocation(loc.coords);
+    setLoadingLocation(false);
   };
+
 
   const selectPictureFromLibrary = async () => {
     let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -90,16 +104,28 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
   
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Date Input */}
       <View style={styles.inputContainer}>
-        <FontAwesomeIcon icon={faCalendarAlt} size={20} color="black" />
-        <TextInput
-          style={styles.input}
-          placeholder="Date"
-          value={selectedDate.toDateString()}
-          onChangeText={(text) => setSelectedDate(text)}
-        />
+          <FontAwesomeIcon icon={faCalendarAlt} size={20} color="black" />
+          {datePickerMode ? (
+              <DateTimePicker
+                  value={selectedDate}
+                  mode={datePickerMode}
+                  is24Hour={true}
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                      setDatePickerMode(null);
+                      if (selectedDate) {
+                          setSelectedDate(selectedDate);
+                      }
+                  }}
+              />
+          ) : (
+              <TouchableOpacity onPress={() => setDatePickerMode('date')}>
+                  <Text style={styles.input}>{selectedDate.toDateString()}</Text>
+              </TouchableOpacity>
+          )}
       </View>
 
       {/* Food Input */}
@@ -113,16 +139,35 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
         />
       </View>
 
-      {/* Amount Input */}
+      {/* Calories Input */}
       <View style={styles.inputContainer}>
-        <FontAwesomeIcon icon={faWeight} size={20} color="black" />
+        <FontAwesomeIcon icon={faBurn} size={20} color="black" />
         <TextInput
           style={styles.input}
-          placeholder="Amount"
-          value={amount}
-          onChangeText={(text) => setAmount(text)}
+          placeholder="Calories"
+          value={String(amount)}  // convert number to string
+          onChangeText={(text) => {
+            if (text === "" || /^[0-9]+$/.test(text)) {
+              setAmount(text);
+            }
+          }}
           keyboardType="numeric"
         />
+      </View>
+
+      <View style={styles.inputContainer}>
+          <FontAwesomeIcon icon={faWeight} size={20} color="black" />
+          <TextInput
+            style={styles.input}
+            placeholder="Weight (g)"
+            value={String(weight)} // convert number to string
+            onChangeText={(text) => {
+              if (text === "" || /^[0-9]+$/.test(text)) {
+                setWeight(text);
+              }
+            }}
+            keyboardType="numeric"
+          />
       </View>
 
       {/* Location Button */}
@@ -130,11 +175,24 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
         <FontAwesomeIcon icon={faMapMarkerAlt} size={20} color="black" />
         <Text style={styles.actionText}>Capture Location</Text>
       </TouchableOpacity>
+      
+      {loadingLocation && <Text style={styles.loadingText}>Capturing location...</Text>}
 
       {location && (
-        <Text style={styles.locationText}>
-          Location: {location.latitude}, {location.longitude}
-        </Text>
+          <MapView
+              style={styles.map}
+              initialRegion={{
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+              }}
+          >
+              <Marker
+                  coordinate={location}
+                  title="Your Location"
+              />
+          </MapView>
       )}
 
       {/* Camera preview and button */}
@@ -156,7 +214,7 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
       <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
         <Text style={styles.confirmButtonText}>Confirm</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -223,6 +281,19 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 10,
   },
+  contentContainer: {
+    paddingBottom: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  map: {
+    width: '100%',
+    height: 200,
+    marginBottom: 20,
+  }
 });
 
 export default AddCaloriesEntry;
