@@ -6,7 +6,7 @@ This application allows users to track their food and calorie intake. Users can 
 
 - **Camera use:** Implemented. Users can take a picture or select one from their media library.
 - **Location use:** Implemented. Users can capture their current location.
-- **Authentication:** Not implemented in this iteration.
+- **Authentication:** Implemented in this iteration.
 - **Notification:** Not implemented in this iteration.
 - **External API use:** Not implemented in this iteration.
 
