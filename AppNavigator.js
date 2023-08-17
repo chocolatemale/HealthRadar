@@ -14,6 +14,7 @@ import {
 import HomePage from "./screens/HomePage";
 import ViewCaloriesRecord from "./screens/ViewCaloriesRecord";
 import AddCaloriesEntry from "./screens/AddCaloriesEntry";
+import Profile from './screens/Profile';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -81,7 +82,9 @@ const AppNavigator = ({ firebaseClient }) => {
         </Tab.Screen>
         {/* You can add other screens here for Food and Profile */}
         <Tab.Screen name="Food">{(props) => <></>}</Tab.Screen>
-        <Tab.Screen name="Profile">{(props) => <></>}</Tab.Screen>
+        <Tab.Screen name="Profile">
+            {(props) => <Profile {...props} />}
+        </Tab.Screen>
       </Tab.Navigator>
     </NavigationContainer>
   );

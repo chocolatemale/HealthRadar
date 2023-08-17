@@ -53,7 +53,6 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
     );
   }, [foodEntries]);
 
-  console.log("foodEntries", foodEntries);
   return (
     <View style={styles.container}>
       {/* Header */}
