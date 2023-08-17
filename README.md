@@ -1,5 +1,5 @@
 # Calories Record App
-
+## Authors: Wenzheng Liao, Yi Zheng
 This application allows users to track their food and calorie intake. Users can add food entries along with details such as the date of consumption, description of the food, weight, calories, location where it was consumed, and an optional image. 
 
 ## Functionalities in this Iteration:
