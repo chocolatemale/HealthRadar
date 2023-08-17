@@ -51,9 +51,11 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
           <Text style={styles.placeholderText}>No food entries yet</Text>
         ) : (
           foodEntries.map((entry) => (
-            <View key={entry.id}>
+            <View key={entry.id} style={styles.entry}>
               <Text>{entry.name}</Text>
               <Text>{entry.calories}</Text>
+              {entry.imageUri && <Image source={{ uri: entry.imageUri }} style={styles.entryImage} />}
+              {entry.location && <Text>Location: {entry.location.latitude}, {entry.location.longitude}</Text>}
             </View>
           ))
         )}
@@ -131,6 +133,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  entryImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginVertical: 10,
+  },  
 });
 
 export default ViewCaloriesRecord;
