@@ -16,9 +16,11 @@ import {
   faUtensils,
   faWeight,
   faCamera,
-  faMapMarkerAlt
+  faMapMarkerAlt,
+  faImages,
 } from "@fortawesome/free-solid-svg-icons";
 import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 
 
 const AddCaloriesEntry = ({ foodRepo, navigation }) => {
@@ -67,6 +69,25 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
     let loc = await Location.getCurrentPositionAsync({});
     setLocation(loc.coords);
   };
+
+  const selectPictureFromLibrary = async () => {
+    let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permission to access media library was denied');
+      return;
+    }
+  
+    let result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+  
+    if (!result.cancelled) {
+      setImage(result.uri);
+    }
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -122,7 +143,11 @@ const AddCaloriesEntry = ({ foodRepo, navigation }) => {
         <FontAwesomeIcon icon={faCamera} size={20} color="black" />
         <Text style={styles.actionText}>Take Picture</Text>
       </TouchableOpacity>
-
+      <TouchableOpacity style={styles.actionButton} onPress={selectPictureFromLibrary}>
+        <FontAwesomeIcon icon={faImages} size={20} color="black" />
+        <Text style={styles.actionText}>Select from Library</Text>
+      </TouchableOpacity>
+      
       {image && (
         <Image source={{ uri: image }} style={styles.imagePreview} />
       )}
