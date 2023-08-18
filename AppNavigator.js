@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -8,7 +8,6 @@ import {
   faClock,
   faUtensils,
   faUser,
-  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
 import HomePage from "./screens/HomePage";
@@ -46,33 +45,29 @@ const AppNavigator = ({ firebaseClient }) => {
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
-
             if (route.name === "Overview") {
-              iconName = focused ? faHome : faHome;
+              iconName = faHome;
             } else if (route.name === "Daily") {
-              iconName = focused ? faClock : faClock;
+              iconName = faClock;
             } else if (route.name === "Food") {
-              iconName = focused ? faUtensils : faUtensils;
+              iconName = faUtensils;
             } else if (route.name === "Profile") {
-              iconName = focused ? faUser : faUser;
+              iconName = faUser;
             }
-
             return (
               <FontAwesomeIcon icon={iconName} size={size} color={color} />
             );
           },
-        })}
-        tabBarOptions={{
-          activeTintColor: "#3498db",
-          inactiveTintColor: "gray",
-          labelStyle: {
+          tabBarActiveTintColor: "#3498db",
+          tabBarInactiveTintColor: "gray",
+          tabBarLabelStyle: {
             fontSize: 12,
             fontWeight: "bold",
           },
-          style: {
-            backgroundColor: "#f4f4f4", // You can set the background color according to your theme
+          tabBarStyle: {
+            backgroundColor: "#f4f4f4",
           },
-        }}
+        })}
       >
         <Tab.Screen name="Overview">
           {(props) => <HomePage {...props} firebaseClient={firebaseClient} />}
@@ -80,7 +75,6 @@ const AppNavigator = ({ firebaseClient }) => {
         <Tab.Screen name="Daily">
           {(props) => <TodayStack {...props} firebaseClient={firebaseClient} />}
         </Tab.Screen>
-        {/* You can add other screens here for Food and Profile */}
         <Tab.Screen name="Food">{(props) => <></>}</Tab.Screen>
         <Tab.Screen name="Profile">
             {(props) => <Profile {...props} />}
