@@ -56,5 +56,24 @@ export const getFirebaseRepo = (dbName, userId) => {
         await deleteDoc(entryRef);
       }
     },
+    async addVisitedRecord(record) {
+      const existingRecords = await this.getAllObjects();
+      const existingRecord = existingRecords.find(
+        r => r.foodId === record.foodId && r.type === record.type
+      );
+      
+      if (existingRecord) {
+        await this.updateObject(existingRecord.id, { timestamp: record.timestamp });
+      } else {
+        await this.addObject(record);
+      }
+    },
+    
+    async clearVisitedRecords() {
+      const records = await this.getAllObjects();
+      for (const record of records) {
+        await this.removeObject(record.id);
+      }
+    },    
   };
 };

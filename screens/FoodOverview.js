@@ -1,10 +1,35 @@
-import React, { useState } from 'react';
-import { View, FlatList, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, TextInput, TouchableOpacity, Text, Image, Button, StyleSheet } from 'react-native';
 import { searchFoods } from '../api/Nutritionix';
+import { getFirebaseRepo } from "../repos/FirebaseRepo";
+import { auth } from "../firebase"; // Assuming this is how you've set up Firebase auth in your app.
 
 const FoodOverview = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [foods, setFoods] = useState([]);
+  const [visitedHistory, setVisitedHistory] = useState([]);
+
+  const storeVisit = async (foodId, type) => {
+    const userId = auth.currentUser.uid;
+    const timestamp = new Date().toISOString();
+
+    const visitRepo = getFirebaseRepo("visitedFoods", userId);
+    await visitRepo.addVisitedRecord({ foodId, type, timestamp });
+  };
+
+  const fetchVisitedHistory = async () => {
+    const userId = auth.currentUser.uid;
+    const visitRepo = getFirebaseRepo("visitedFoods", userId);
+    const history = await visitRepo.getAllObjects();
+    setVisitedHistory(history);
+  };
+
+  const clearVisitedHistory = async () => {
+    const userId = auth.currentUser.uid;
+    const visitRepo = getFirebaseRepo("visitedFoods", userId);
+    await visitRepo.clearVisitedRecords();
+    setVisitedHistory([]); // Clear local state.
+  };
 
   const simplifyName = name => {
     return name.toLowerCase().replace(/\s+/g, " ").replace(/s\b|\bon\b|s\b/g, "").trim();
@@ -70,11 +95,8 @@ const FoodOverview = ({ navigation }) => {
       <TouchableOpacity 
         style={styles.listItem}
         onPress={() => {
-          navigation.navigate('FoodDetails', { 
-            foodId: itemId, 
-            type: itemType, 
-            foodName: item.food_name // Use item.food_name directly
-          });
+          storeVisit(itemId, itemType);
+          navigation.navigate('FoodDetails', { foodId: itemId, type: itemType, foodName: item.food_name });
         }}
       >
         <Image
@@ -103,6 +125,8 @@ const FoodOverview = ({ navigation }) => {
         keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
         renderItem={renderFoodItem}
       />
+      <Button title="View Visited History" onPress={fetchVisitedHistory} />
+      {visitedHistory.length > 0 && <Button title="Clear Visited History" onPress={clearVisitedHistory} />}
     </View>
   );
 };
