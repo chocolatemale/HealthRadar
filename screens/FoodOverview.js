@@ -22,6 +22,7 @@ const FoodOverview = ({ navigation }) => {
     const userId = auth.currentUser.uid;
     const visitRepo = getFirebaseRepo("visitedFoods", userId);
     const history = await visitRepo.getAllObjects();
+    console.log(history)
     setVisitedHistory(history);
   };
 
@@ -125,6 +126,19 @@ const FoodOverview = ({ navigation }) => {
         data={foods}
         keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
         renderItem={renderFoodItem}
+      />
+      {/* Here's the new FlatList for displaying visited history */}
+      <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 10}}>Visited History:</Text>
+      <FlatList
+          data={visitedHistory}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.listItem}>
+              <Text style={styles.foodName}>{item.foodId}</Text>
+              <Text style={styles.foodBrand}>{item.type}</Text>
+              <Text style={{fontSize: 12, color: 'gray'}}>Visited: {item.timestamp}</Text>
+            </View>
+          )}
       />
       <Button title="View Visited History" onPress={fetchVisitedHistory} />
       {visitedHistory.length > 0 && <Button title="Clear Visited History" onPress={clearVisitedHistory} />}
