@@ -6,62 +6,88 @@ const FoodOverview = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [foods, setFoods] = useState([]);
 
+  const simplifyName = name => {
+    return name.toLowerCase().replace(/\s+/g, " ").replace(/s\b|\bon\b|s\b/g, "").trim();
+  };
+
+  const capitalize = name => {
+    return name.replace(/\b\w/g, char => char.toUpperCase());
+  };
+
   const handleSearch = async () => {
     const results = await searchFoods(searchQuery);
-        if (results) {
-            let prioritizedResults = [];
 
-            // Check and add generic food items first
-            if (results.common) {
-                prioritizedResults = [...results.common];
-            }
+    if (results) {
+      let processedResults = [];
 
-            // Append branded items
-            if (results.branded) {
-                prioritizedResults = [...prioritizedResults, ...results.branded];
-            }
+      // Process common items
+      const commonItems = results.common || [];
+      const uniqueCommonItems = [];
+      const seenCommonNames = new Set();
 
-            setFoods(prioritizedResults);
-        } else {
-            console.error("Unexpected API response format:", results);
-            setFoods([]);
+      for (const item of commonItems) {
+        const simplifiedName = simplifyName(item.food_name);
+
+        if (!seenCommonNames.has(simplifiedName)) {
+          seenCommonNames.add(simplifiedName);
+          uniqueCommonItems.push({ ...item, food_name: capitalize(simplifiedName) });
         }
-    };
+      }
 
+      processedResults = [...uniqueCommonItems];
 
-    const renderFoodItem = ({ item }) => {      
-        // Determine the identifier and type for the item.
-        const itemId = item.nix_item_id || item.tag_id;
-        const itemType = item.nix_item_id ? 'branded' : 'common';
-      
-        if (!itemId && !item.food_name) { // Check for both itemId and food_name
-          console.warn("Item does not have an identifier or food name:", item);
-          return null; // Return null to prevent rendering this item.
-        }
-      
-        return (
-          <TouchableOpacity 
-            style={styles.listItem}
-            onPress={() => {
-              navigation.navigate('FoodDetails', { 
-                foodId: itemId, 
-                type: itemType, 
-                foodName: item.food_name // Pass the food name
-              });
-            }}
-          >
-            <Image
-              source={{ uri: item.photo && item.photo.thumb ? item.photo.thumb : 'default_thumbnail_url' }}
-              style={styles.foodImage}
-            />
-            <View style={styles.foodDetails}>
-              <Text style={styles.foodName}>{item.food_name}</Text>
-              <Text style={styles.foodBrand}>{item.brand_name || 'Raw food'}</Text>
-            </View>
-          </TouchableOpacity>
-        );
-    };
-      
+      // Append branded items
+      if (results.branded) {
+        processedResults = [...processedResults, ...results.branded];
+      }
+
+      // Prioritize by similarity to search query
+      processedResults.sort((a, b) => {
+        const aSimilarity = a.food_name.includes(searchQuery) ? 1 : 0;
+        const bSimilarity = b.food_name.includes(searchQuery) ? 1 : 0;
+
+        return bSimilarity - aSimilarity;
+      });
+
+      setFoods(processedResults);
+    } else {
+      console.error("Unexpected API response format:", results);
+      setFoods([]);
+    }
+  };
+
+  const renderFoodItem = ({ item }) => {
+    // Determine the identifier and type for the item.
+    const itemId = item.nix_item_id || item.tag_id;
+    const itemType = item.nix_item_id ? 'branded' : 'common';
+    
+    if (!itemId && !item.food_name) { 
+      console.warn("Item does not have an identifier or food name:", item);
+      return null; 
+    }
+
+    return (
+      <TouchableOpacity 
+        style={styles.listItem}
+        onPress={() => {
+          navigation.navigate('FoodDetails', { 
+            foodId: itemId, 
+            type: itemType, 
+            foodName: item.food_name // Use item.food_name directly
+          });
+        }}
+      >
+        <Image
+          source={{ uri: item.photo && item.photo.thumb ? item.photo.thumb : 'default_thumbnail_url' }}
+          style={styles.foodImage}
+        />
+        <View style={styles.foodDetails}>
+          <Text style={styles.foodName}>{item.food_name}</Text>
+          <Text style={styles.foodBrand}>{item.brand_name || 'Common Food'}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
