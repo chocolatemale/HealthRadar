@@ -14,6 +14,8 @@ import HomePage from "./screens/HomePage";
 import ViewCaloriesRecord from "./screens/ViewCaloriesRecord";
 import AddCaloriesEntry from "./screens/AddCaloriesEntry";
 import Profile from './screens/Profile';
+import FoodOverview from './screens/FoodOverview';
+import FoodDetails from './screens/FoodDetails';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -33,6 +35,19 @@ const TodayStack = ({ firebaseClient }) => {
         {(props) => (
           <AddCaloriesEntry {...props} foodRepo={firebaseClient.foodRepo} />
         )}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+};
+
+const FoodStack = ({ firebaseClient }) => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="FoodOverview" options={{ headerShown: false }}>
+        {(props) => <FoodOverview {...props} />}
+      </Stack.Screen>
+      <Stack.Screen name="FoodDetails" options={{ title: "Food Details" }}>
+        {(props) => <FoodDetails {...props} />}
       </Stack.Screen>
     </Stack.Navigator>
   );
@@ -75,7 +90,9 @@ const AppNavigator = ({ firebaseClient }) => {
         <Tab.Screen name="Daily">
           {(props) => <TodayStack {...props} firebaseClient={firebaseClient} />}
         </Tab.Screen>
-        <Tab.Screen name="Food">{(props) => <></>}</Tab.Screen>
+        <Tab.Screen name="Food">
+          {(props) => <FoodStack {...props} firebaseClient={firebaseClient} />}
+        </Tab.Screen>
         <Tab.Screen name="Profile">
             {(props) => <Profile {...props} />}
         </Tab.Screen>
