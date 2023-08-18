@@ -1,37 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, FlatList, TextInput, TouchableOpacity, Text, Image, StyleSheet, Button } from 'react-native';
+import React, { useState } from 'react';
+import { View, FlatList, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
 import { searchFoods } from '../api/Nutritionix';
-import { getVisitedFoodRepo } from '../repos/FirebaseRepo';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
 
 const FoodOverview = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [foods, setFoods] = useState([]);
-  const [userId, setUserId] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-      } else {
-        setUserId(null);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (userId) {
-      const fetchVisitedFoods = async () => {
-        const visitedFoodRepo = getVisitedFoodRepo(userId);
-        const visitedFoods = await visitedFoodRepo.getVisitedFoods();
-        setFoods(visitedFoods);
-      };
-      fetchVisitedFoods();
-    }
-  }, [userId]);
 
   const simplifyName = name => {
     return name.toLowerCase().replace(/\s+/g, " ").replace(/s\b|\bon\b|s\b/g, "").trim();
@@ -83,29 +56,6 @@ const FoodOverview = ({ navigation }) => {
     }
   };
 
-  const handleClearSearch = () => {
-    setSearchQuery('');
-    // Load the visited foods for the user
-    const fetchVisitedFoods = async () => {
-      const visitedFoodRepo = getVisitedFoodRepo(userId);
-      const visitedFoods = await visitedFoodRepo.getVisitedFoods();
-      setFoods(visitedFoods);
-    };
-    fetchVisitedFoods();
-  };
-
-  const handleClearVisitedFoods = async () => {
-    const visitedFoodRepo = getVisitedFoodRepo(userId);
-    await visitedFoodRepo.clearVisitedFoods();
-    setFoods([]);  // Clear displayed foods after clearing history
-  };
-
-  const handleFoodClick = async (itemId, itemType, foodName) => {
-    const visitedFoodRepo = getVisitedFoodRepo(userId);
-    await visitedFoodRepo.addVisitedFood({ nix_item_id: itemId, type: itemType, food_name: foodName });
-    navigation.navigate('FoodDetails', { foodId: itemId, type: itemType, foodName });
-  };
-  
   const renderFoodItem = ({ item }) => {
     // Determine the identifier and type for the item.
     const itemId = item.nix_item_id || item.tag_id;
@@ -120,7 +70,11 @@ const FoodOverview = ({ navigation }) => {
       <TouchableOpacity 
         style={styles.listItem}
         onPress={() => {
-          handleFoodClick(itemId, itemType, item.food_name);
+          navigation.navigate('FoodDetails', { 
+            foodId: itemId, 
+            type: itemType, 
+            foodName: item.food_name // Use item.food_name directly
+          });
         }}
       >
         <Image
@@ -144,11 +98,9 @@ const FoodOverview = ({ navigation }) => {
         value={searchQuery}
         onEndEditing={handleSearch}
       />
-      <Button title="Clear Search" onPress={handleClearSearch} />
-      <Button title="Clear Visited History" onPress={handleClearVisitedFoods} />
       <FlatList
         data={foods}
-        keyExtractor={(item) => item.nix_item_id.toString()}
+        keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
         renderItem={renderFoodItem}
       />
     </View>
@@ -158,29 +110,26 @@ const FoodOverview = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: '#f4f4f4'
+    padding: 10
   },
   searchBar: {
     padding: 10,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 10,
-    marginBottom: 10,
-    backgroundColor: '#fff'
+    borderRadius: 5,
+    marginBottom: 10
   },
   listItem: {
     flexDirection: 'row',
-    padding: 15,
-    marginVertical: 5,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    elevation: 1
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    alignItems: 'center'
   },
   foodImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     marginRight: 10
   },
   foodDetails: {
