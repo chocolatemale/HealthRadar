@@ -10,6 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { database } from "../firebase";
+import { serverTimestamp, orderBy, writeBatch } from "firebase/firestore";
 
 const docToObject = (doc) => {
   const data = doc.data();
@@ -55,6 +56,43 @@ export const getFirebaseRepo = (dbName, userId) => {
       if (objectSnapshot.exists() && objectSnapshot.data().userId === userId) {
         await deleteDoc(entryRef);
       }
+    },
+  };
+};
+
+export const getVisitedFoodRepo = (userId) => {
+  const HISTORY_DB_NAME = `foodHistory_${userId}`;
+
+  return {
+    async getVisitedFoods() {
+      const foodsCollection = collection(database, HISTORY_DB_NAME);
+      const foodQuery = query(foodsCollection, orderBy('timestamp', 'desc'));
+      const querySnapshot = await getDocs(foodQuery);
+      return querySnapshot.docs.map(docToObject);
+    },
+     
+
+    async addVisitedFood(food) {
+      const foodCollection = collection(database, HISTORY_DB_NAME);
+      const foodQuery = query(foodCollection, where("nix_item_id", "==", food.nix_item_id));
+      const querySnapshot = await getDocs(foodQuery);
+      if (querySnapshot.empty) {
+          // Only add if the food isn't already in the database.
+          await addDoc(collection(database, HISTORY_DB_NAME), {
+              ...food,
+              timestamp: serverTimestamp()
+          });
+      }
+    },
+    
+    async clearVisitedFoods() {
+      const foodsCollection = collection(database, HISTORY_DB_NAME);
+      const querySnapshot = await getDocs(foodsCollection);
+      const batch = writeBatch(database);
+      querySnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
     },
   };
 };
