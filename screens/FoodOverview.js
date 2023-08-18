@@ -9,13 +9,14 @@ const FoodOverview = ({ navigation }) => {
   const [foods, setFoods] = useState([]);
   const [visitedHistory, setVisitedHistory] = useState([]);
 
-  const storeVisit = async (foodId, type) => {
+  const storeVisit = async (foodId, type, foodName) => {
     const userId = auth.currentUser.uid;
     const timestamp = new Date().toISOString();
+    const identifier = type === 'common' ? foodName : foodId; // Use foodName for common and foodId for branded.
 
     const visitRepo = getFirebaseRepo("visitedFoods", userId);
-    await visitRepo.addVisitedRecord({ foodId, type, timestamp });
-  };
+    await visitRepo.addVisitedRecord({ foodId: identifier, type, timestamp });
+};
 
   const fetchVisitedHistory = async () => {
     const userId = auth.currentUser.uid;
@@ -83,9 +84,9 @@ const FoodOverview = ({ navigation }) => {
 
   const renderFoodItem = ({ item }) => {
     // Determine the identifier and type for the item.
-    const itemId = item.nix_item_id || item.tag_id;
+    const itemId = item.nix_item_id || item.food_name;
     const itemType = item.nix_item_id ? 'branded' : 'common';
-    
+
     if (!itemId && !item.food_name) { 
       console.warn("Item does not have an identifier or food name:", item);
       return null; 
@@ -95,7 +96,7 @@ const FoodOverview = ({ navigation }) => {
       <TouchableOpacity 
         style={styles.listItem}
         onPress={() => {
-          storeVisit(itemId, itemType);
+          storeVisit(itemId, itemType, item.food_name); // Passing food_name as an argument
           navigation.navigate('FoodDetails', { foodId: itemId, type: itemType, foodName: item.food_name });
         }}
       >
