@@ -109,6 +109,11 @@ const FoodOverview = ({ navigation }) => {
           <Text style={styles.foodName}>{item.food_name}</Text>
           <Text style={styles.foodBrand}>{item.brand_name || 'Common Food'}</Text>
         </View>
+        <View style={styles.caloriesContainer}>
+          <Text style={[styles.caloriesText, item.nf_calories > 100 ? styles.caloriesRed : styles.caloriesGreen]}>
+            {item.nf_calories ? `${item.nf_calories} cal` : 'N/A'}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -181,6 +186,22 @@ const styles = StyleSheet.create({
   foodBrand: {
     fontSize: 14,
     color: 'gray'
+  },
+    caloriesContainer: {
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    flex: 1
+  },
+  caloriesText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  caloriesRed: {
+    color: 'red'
+  },
+  caloriesGreen: {
+    color: 'green'
   }
 });
 
