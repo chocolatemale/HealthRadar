@@ -3,7 +3,8 @@ import { View, FlatList, TextInput, TouchableOpacity, Text, Image, Button, Style
 import { searchFoods } from '../api/Nutritionix';
 import { getFirebaseRepo } from "../repos/FirebaseRepo";
 import { auth } from "../firebase"; // Assuming this is how you've set up Firebase auth in your app.
-
+import { getFoodDetails
+ } from '../api/Nutritionix';
 const FoodOverview = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [foods, setFoods] = useState([]);
@@ -12,18 +13,62 @@ const FoodOverview = ({ navigation }) => {
   const storeVisit = async (foodId, type, foodName) => {
     const userId = auth.currentUser.uid;
     const timestamp = new Date().toISOString();
-    const identifier = type === 'common' ? foodName : foodId; // Use foodName for common and foodId for branded.
-
+    const identifier = type === 'common' ? simplifyName(foodName) : foodId; // Use foodName for common and foodId for branded.
+  
     const visitRepo = getFirebaseRepo("visitedFoods", userId);
+  
+    // Check if an entry with the same name/ID exists.
+    const existingRecords = await visitRepo.getAllObjects();
+    const existingRecord = existingRecords.find(
+      r => r.foodId === identifier && r.type === type
+    );
+  
+    if (existingRecord) {
+      // If the record exists, delete the oldest record.
+      existingRecords.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      await visitRepo.removeObject(existingRecords[0].id);
+    }
+  
+    // Now, add the new entry.
     await visitRepo.addVisitedRecord({ foodId: identifier, type, timestamp });
-};
-
+  };
+  
+  useEffect(() => {
+    // Fetch visited history as soon as the component mounts.
+    fetchVisitedHistory();
+  }, []);
+  
   const fetchVisitedHistory = async () => {
     const userId = auth.currentUser.uid;
     const visitRepo = getFirebaseRepo("visitedFoods", userId);
     const history = await visitRepo.getAllObjects();
-    console.log(history)
-    setVisitedHistory(history);
+
+    // Sort the history records based on the timestamp in descending order
+    history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    const detailedVisitedHistory = [];
+  
+    let count = 0; // Keep track of the number of valid records fetched
+    for (const record of history) {
+      if (count >= 5) break; // Fetch only the 10 latest records
+      
+      try {
+        const foodDetails = await getFoodDetails(record.foodId, record.type);
+        if (foodDetails && foodDetails.foods && foodDetails.foods[0] && foodDetails.foods[0].nf_calories !== "N/A") {
+          detailedVisitedHistory.push(foodDetails.foods[0]);
+          count++;
+        }
+      } catch (error) {
+        if (error.message && error.message.includes("We couldn't match any of your foods")) {
+          console.warn("Error fetching details for visited food:", record.foodId, error);
+          continue; // Skip and move to the next one
+        } else {
+          console.error("Unknown error occurred:", error);
+        }
+      }
+    }
+  
+    setVisitedHistory(detailedVisitedHistory);
   };
 
   const clearVisitedHistory = async () => {
@@ -54,12 +99,13 @@ const FoodOverview = ({ navigation }) => {
 
       for (const item of commonItems) {
         const simplifiedName = simplifyName(item.food_name);
-
+    
+        // Check if this name already exists in our list.
         if (!seenCommonNames.has(simplifiedName)) {
-          seenCommonNames.add(simplifiedName);
-          uniqueCommonItems.push({ ...item, food_name: capitalize(simplifiedName) });
+            seenCommonNames.add(simplifiedName);
+            uniqueCommonItems.push({ ...item, food_name: capitalize(simplifiedName) });
         }
-      }
+    }
 
       processedResults = [...uniqueCommonItems];
 
@@ -111,7 +157,7 @@ const FoodOverview = ({ navigation }) => {
         </View>
         <View style={styles.caloriesContainer}>
           <Text style={[styles.caloriesText, item.nf_calories > 100 ? styles.caloriesRed : styles.caloriesGreen]}>
-            {item.nf_calories ? `${item.nf_calories} cal` : 'N/A'}
+            {item.nf_calories ? `${Math.round(item.nf_calories)} cal` : 'Click to view'}
           </Text>
         </View>
       </TouchableOpacity>
@@ -127,28 +173,27 @@ const FoodOverview = ({ navigation }) => {
         value={searchQuery}
         onEndEditing={handleSearch}
       />
-      <FlatList
-        data={foods}
-        keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
-        renderItem={renderFoodItem}
-      />
-      {/* Here's the new FlatList for displaying visited history */}
-      <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 10}}>Visited History:</Text>
-      <FlatList
-          data={visitedHistory}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.listItem}>
-              <Text style={styles.foodName}>{item.foodId}</Text>
-              <Text style={styles.foodBrand}>{item.type}</Text>
-              <Text style={{fontSize: 12, color: 'gray'}}>Visited: {item.timestamp}</Text>
-            </View>
-          )}
-      />
-      <Button title="View Visited History" onPress={fetchVisitedHistory} />
-      {visitedHistory.length > 0 && <Button title="Clear Visited History" onPress={clearVisitedHistory} />}
+      {foods.length > 0 ? (
+        // If there are foods in the search result, render them
+        <FlatList
+          data={foods}
+          keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
+          renderItem={renderFoodItem}
+        />
+      ) : (
+        // Otherwise, if the search result is empty, render the visited history
+        <>
+          <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 10}}>Visited History:</Text>
+          <FlatList
+            data={visitedHistory}
+            keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
+            renderItem={renderFoodItem}
+          />
+          {visitedHistory.length > 0 && <Button title="Clear Visited History" onPress={clearVisitedHistory} />}
+        </>
+      )}
     </View>
-  );
+  );  
 };
 
 const styles = StyleSheet.create({

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const API_ENDPOINT = "https://trackapi.nutritionix.com/v2";
-const APP_ID = "f6d81207";
-const API_KEY = "5582dc4ba599c2e5676e147bf3c74ea0";
+const APP_ID = "bedd6631";
+const API_KEY = "47cebbf4a50c4052f76587b02320ee70";
 
 const client = axios.create({
   baseURL: API_ENDPOINT,
@@ -51,4 +51,3 @@ export const getFoodDetails = async (identifier, type = 'common') => {
         throw error;
     }
 };
-

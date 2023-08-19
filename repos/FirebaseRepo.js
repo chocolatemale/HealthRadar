@@ -17,6 +17,10 @@ const docToObject = (doc) => {
   return data;
 };
 
+const simplifyName = name => {
+  return name.toLowerCase().replace(/\s+/g, " ").replace(/s\b|\bon\b|s\b/g, "").trim();
+};
+
 export const getFirebaseRepo = (dbName, userId) => {
   return {
     async getAllObjects() {
@@ -74,6 +78,24 @@ export const getFirebaseRepo = (dbName, userId) => {
       for (const record of records) {
         await this.removeObject(record.id);
       }
-    },    
+    },
+    async deleteVisitedRecord(foodId, type) {
+      const records = await this.getAllObjects();
+      let matchingRecords = [];
+      
+      if (type === 'common') {
+        matchingRecords = records.filter(record => simplifyName(record.foodId) === simplifyName(foodId) && record.type === 'common');
+      } else {
+        matchingRecords = records.filter(record => record.foodId === foodId && record.type !== 'common');
+      }
+      
+      if (matchingRecords.length > 0) {
+        // Sort by timestamp
+        matchingRecords.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        // Remove the oldest one
+        await this.removeObject(matchingRecords[0].id);
+      }
+    }        
   };
 };
