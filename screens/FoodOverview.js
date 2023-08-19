@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, TextInput, TouchableOpacity, Text, Image, Button, StyleSheet } from 'react-native';
+import { View, FlatList, TextInput, TouchableOpacity, Text, Image, Button, StyleSheet, Alert } from 'react-native';
 import { searchFoods } from '../api/Nutritionix';
 import { getFirebaseRepo } from "../repos/FirebaseRepo";
 import { auth } from "../firebase"; // Assuming this is how you've set up Firebase auth in your app.
@@ -50,7 +50,7 @@ const FoodOverview = ({ navigation }) => {
   
     let count = 0; // Keep track of the number of valid records fetched
     for (const record of history) {
-      if (count >= 5) break; // Fetch only the 10 latest records
+      if (count >= 1) break; // Fetch only the 10 latest records
       
       try {
         const foodDetails = await getFoodDetails(record.foodId, record.type);
@@ -72,10 +72,22 @@ const FoodOverview = ({ navigation }) => {
   };
 
   const clearVisitedHistory = async () => {
-    const userId = auth.currentUser.uid;
-    const visitRepo = getFirebaseRepo("visitedFoods", userId);
-    await visitRepo.clearVisitedRecords();
-    setVisitedHistory([]); // Clear local state.
+    Alert.alert(
+      "Clear History",
+      "Are you sure you want to clear your visited history?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes",
+          onPress: async () => {
+            const userId = auth.currentUser.uid;
+            const visitRepo = getFirebaseRepo("visitedFoods", userId);
+            await visitRepo.clearVisitedRecords();
+            setVisitedHistory([]); // Clear local state.
+          }
+        }
+      ]
+    );
   };
 
   const simplifyName = name => {
@@ -141,7 +153,7 @@ const FoodOverview = ({ navigation }) => {
 
     return (
       <TouchableOpacity 
-        style={styles.listItem}
+        style={[styles.listItem, styles.card]}
         onPress={() => {
           storeVisit(itemId, itemType, item.food_name); // Passing food_name as an argument
           navigation.navigate('FoodDetails', { foodId: itemId, type: itemType, foodName: item.food_name });
@@ -152,7 +164,7 @@ const FoodOverview = ({ navigation }) => {
           style={styles.foodImage}
         />
         <View style={styles.foodDetails}>
-          <Text style={styles.foodName}>{item.food_name}</Text>
+          <Text style={styles.foodName}>{capitalize(item.food_name)}</Text>
           <Text style={styles.foodBrand}>{item.brand_name || 'Common Food'}</Text>
         </View>
         <View style={styles.caloriesContainer}>
@@ -166,31 +178,44 @@ const FoodOverview = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search for food..."
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-        onEndEditing={handleSearch}
-      />
+      <View style={styles.searchBarContainer}>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search for all foods..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          onEndEditing={handleSearch}
+        />
+        {foods.length > 0 && (
+          <TouchableOpacity style={styles.clearSearchButton} onPress={() => { setFoods([]); setSearchQuery(''); }}>
+            <Text style={styles.clearSearchButtonText}>Clear Search</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {foods.length > 0 ? (
-        // If there are foods in the search result, render them
         <FlatList
           data={foods}
           keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
           renderItem={renderFoodItem}
         />
       ) : (
-        // Otherwise, if the search result is empty, render the visited history
-        <>
-          <Text style={{fontSize: 18, fontWeight: 'bold', marginTop: 10}}>Visited History:</Text>
+        <View>
+          <View style={styles.historyHeader}>
+            <Text style={styles.historyHeaderText}>Recently Viewed:</Text>
+            {visitedHistory.length > 0 && (
+              <TouchableOpacity onPress={clearVisitedHistory}>
+                <Text style={styles.clearHistoryText}>Clear History</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
           <FlatList
             data={visitedHistory}
             keyExtractor={(item) => item.nix_item_id ? item.nix_item_id.toString() : item.food_name}
             renderItem={renderFoodItem}
           />
-          {visitedHistory.length > 0 && <Button title="Clear Visited History" onPress={clearVisitedHistory} />}
-        </>
+        </View>
       )}
     </View>
   );  
@@ -200,13 +225,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10
-  },
-  searchBar: {
-    padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 10
   },
   listItem: {
     flexDirection: 'row',
@@ -247,7 +265,68 @@ const styles = StyleSheet.create({
   },
   caloriesGreen: {
     color: 'green'
-  }
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5
+  },
+  searchBar: {
+    flex: 1,
+    padding: 15,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    backgroundColor: '#fff'
+  },
+  clearSearchButton: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#FF6347', // Tomato color
+    marginLeft: 10
+  },
+  clearSearchButtonText: {
+    color: '#FFF',
+    fontSize: 16
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  historyHeaderText: {
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  clearHistoryText: {
+    color: '#FF6347',
+    fontSize: 16,
+    textDecorationLine: 'underline'
+  },
+  card: {
+    flexDirection: 'row',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,  // Reduced y-offset
+    },
+    shadowOpacity: 0.15,  // Reduced opacity
+    shadowRadius: 2,  // Reduced blur radius
+    elevation: 3  // Reduced elevation for Android
+  },  
 });
 
 export default FoodOverview;
