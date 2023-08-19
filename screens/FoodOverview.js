@@ -50,7 +50,7 @@ const FoodOverview = ({ navigation }) => {
   
     let count = 0; // Keep track of the number of valid records fetched
     for (const record of history) {
-      if (count >= 1) break; // Fetch only the 10 latest records
+      if (count >= 3) break; // Fetch only the 10 latest records
       
       try {
         const foodDetails = await getFoodDetails(record.foodId, record.type);
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   foodImage: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 10,
     marginRight: 10
   },
   foodDetails: {
