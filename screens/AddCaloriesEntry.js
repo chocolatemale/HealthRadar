@@ -25,6 +25,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
 import { auth, storage } from '../firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import * as ImageManipulator from 'expo-image-manipulator';
 
 
 const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
@@ -41,7 +42,13 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
 
   
   const uploadImageToFirebase = async (uri) => {
-    const response = await fetch(uri);
+    // 1. Compress the image using expo-image-manipulator
+    const compressedImage = await ImageManipulator.manipulateAsync(
+      uri,
+      [{ resize: { width: 1000 } }], // This will resize the image to a max width of 1000 while maintaining the aspect ratio
+      { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG } // This will compress the image to 70% of its original quality
+    );
+    const response = await fetch(compressedImage.uri);
     const blob = await response.blob();
     const userId = auth.currentUser.uid; // Using firebase auth to get the current user's ID
     const uploadRef = ref(storage, `user_images/${userId}/${Date.now().toString()}.jpg`); // Creates a reference to where the image will be saved
@@ -125,7 +132,7 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
           [
               {
                   text: 'Cancel',
-                  onPress: () => console.log('Delete action cancelled'), // Optionally handle the cancel press
+                  onPress: () => console.log('Delete action canceled'), // Optionally handle the cancel press
                   style: 'cancel',
               },
               {
@@ -160,7 +167,7 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
     });
 
     if (!result.canceled) {
-      setImage(result.uri);
+      setImage(result.assets[0].uri);
     }
   };
 
@@ -192,7 +199,7 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
     });
   
     if (!result.canceled) {
-      setImage(result.uri);
+      setImage(result.assets[0].uri);
     }
   };
   
