@@ -23,6 +23,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
+import { auth, storage } from '../firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 
 const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
@@ -37,6 +39,30 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
   const [loadingLocation, setLoadingLocation] = useState(false);
 
 
+  
+  const uploadImageToFirebase = async (uri) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const userId = auth.currentUser.uid; // Using firebase auth to get the current user's ID
+    const uploadRef = ref(storage, `user_images/${userId}/${Date.now().toString()}.jpg`); // Creates a reference to where the image will be saved
+
+    return new Promise((resolve, reject) => {
+        const uploadTask = uploadBytesResumable(uploadRef, blob);
+
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                // Progress can be monitored here if needed
+            },
+            (error) => {
+                reject(error);
+            },
+            async () => {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                resolve(downloadURL);
+            }
+        );
+    });
+  };
 
   const handleConfirm = async () => {
     // Check if food (description) or calories is empty
@@ -47,6 +73,17 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
 
     // If weight is empty, default it to 0
     const finalWeight = weight.trim() ? weight : "0";
+
+    if (image) {
+      try {
+          const uploadedImageUrl = await uploadImageToFirebase(image);
+          setImage(uploadedImageUrl);  // Update the image state with the Firebase URL
+      } catch (error) {
+          console.error("Error uploading image:", error);
+          // Optionally, inform the user about the error with a Toast or Alert
+          return;  // Exit the function if there's an error
+      }
+    }
 
     const entry = {
         date: selectedDate,
