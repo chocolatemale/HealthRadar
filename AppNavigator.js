@@ -7,6 +7,7 @@ import {
   faHome,
   faClock,
   faUtensils,
+  faAppleAlt,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -64,8 +65,8 @@ const AppNavigator = ({ firebaseClient }) => {
               iconName = faHome;
             } else if (route.name === "Daily") {
               iconName = faClock;
-            } else if (route.name === "Food") {
-              iconName = faUtensils;
+            } else if (route.name === "Nutrition") {
+              iconName = faAppleAlt;
             } else if (route.name === "Profile") {
               iconName = faUser;
             }
@@ -90,7 +91,7 @@ const AppNavigator = ({ firebaseClient }) => {
         <Tab.Screen name="Daily">
           {(props) => <TodayStack {...props} firebaseClient={firebaseClient} />}
         </Tab.Screen>
-        <Tab.Screen name="Food">
+        <Tab.Screen name="Nutrition">
           {(props) => <FoodStack {...props} firebaseClient={firebaseClient} />}
         </Tab.Screen>
         <Tab.Screen name="Profile">

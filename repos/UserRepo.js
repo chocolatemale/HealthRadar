@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { database, auth } from "../firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 const USER_DB_NAME = "user";
 
@@ -46,32 +47,44 @@ export const getUserRepo = (userId) => {
       }
     },
     
-    async signin(email, password, passwordConfirmed) {
+    async resetPassword(email) {
+      try {
+          await sendPasswordResetEmail(auth, email);
+      } catch (error) {
+          console.error("Error resetting password:", error);
+          throw error;
+      }
+     },
+     
+    async signin(email, password, passwordConfirmed, username, firstName, lastName, phoneNumber) {
       try {
         if (password !== passwordConfirmed) {
           console.log("Passwords do not match!");
           return null;
         }
-        
+            
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-    
+        
         if (user) {
-          // Now, store other user details in Firestore
+          // Update the user details with the new fields
           const objectInput = {
             email: user.email,
-            uid: user.uid, // User UID from Firebase Auth
-            // phoneNumber, // Uncomment when you want to include phone number
-            // username,    // Uncomment when you want to include username
+            uid: user.uid,
+            username: username,
+            firstName: firstName,
+            lastName: lastName,
+            phoneNumber: phoneNumber
           };
           const docRef = await addDoc(collection(database, USER_DB_NAME), objectInput);
           return objectInput;
         }
       } catch (error) {
         console.log(error);
-        return null;
+        throw error;
       }
     },
+    
     
     async updateUser(id, updatedUser) {
       const entryRef = doc(database, USER_DB_NAME, id);
