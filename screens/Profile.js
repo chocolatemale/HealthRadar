@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { getUserRepo } from '../repos/UserRepo';
-import { auth } from '../firebase';
+import { auth, storage } from '../firebase';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import { Platform, Alert } from 'react-native';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const Profile = () => {
   const [user, setUser] = useState({});
 
   const currentUserEmail = auth.currentUser && auth.currentUser.email;
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      ImagePicker.requestMediaLibraryPermissionsAsync().then(response => {
+        if (response.status !== 'granted') {
+          alert('Sorry, we need camera roll permissions to make this work!');
+        }
+      });
+      ImagePicker.requestCameraPermissionsAsync().then(response => {
+        if (response.status !== 'granted') {
+          alert('Sorry, we need camera permissions to make this work!');
+        }
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -21,6 +39,62 @@ const Profile = () => {
     }
   }, [currentUserEmail]);
 
+  const pickImage = async (fromCamera = false) => {
+    let pickerResult;
+    
+    if (fromCamera) {
+      pickerResult = await ImagePicker.launchCameraAsync();
+    } else {
+      pickerResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+    }
+
+    if (!pickerResult.canceled) {
+      const uri = pickerResult.assets[0].uri;  // Updated way to access uri
+      uploadImage(uri);    }
+  };
+
+  const uploadImage = async (uri) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const storageRef = ref(storage, `profile_images/${auth.currentUser.uid}`);
+    const uploadTask = uploadBytesResumable(storageRef, blob);
+
+    uploadTask.on('state_changed', snapshot => {
+      // You can show upload progress here if you want
+    }, err => {
+      console.log(err);
+    }, async () => {
+      const downloadURL = await getDownloadURL(storageRef);
+      updateUserProfileImage(downloadURL);
+    });
+  };
+
+  const updateUserProfileImage = async (imageUrl) => {
+    const userRepo = getUserRepo();
+    await userRepo.updateUser(currentUserEmail, { photoURL: imageUrl });
+    setUser(prevState => ({ ...prevState, photoURL: imageUrl }));
+  };
+
+  const chooseImageOption = () => {
+    Alert.alert("Choose a profile photo", "Would you like to...", [
+      {
+        text: "Upload from album",
+        onPress: () => pickImage()
+      },
+      {
+        text: "Take a picture",
+        onPress: () => pickImage(true)
+      },
+      {
+        text: "Cancel",
+        style: "cancel"
+      }
+    ]);
+  };
+
   const handleSignOut = () => {
     auth.signOut();
   };
@@ -28,10 +102,12 @@ const Profile = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Image 
-          source={{ uri: user.photoURL || 'https://via.placeholder.com/150' }} 
-          style={styles.profileImage}
-        />
+        <TouchableOpacity onPress={chooseImageOption}>
+          <Image 
+            source={{ uri: user.photoURL || 'https://via.placeholder.com/150' }} 
+            style={styles.profileImage}
+          />
+        </TouchableOpacity>
         <Text style={styles.profileName}>{user.username || "Unknown"}</Text>
       </View>
       <View style={styles.infoContainer}>

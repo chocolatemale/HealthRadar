@@ -55,7 +55,7 @@ export const getUserRepo = (userId) => {
           throw error;
       }
      },
-     
+
     async signin(email, password, passwordConfirmed, username, firstName, lastName, phoneNumber) {
       try {
         if (password !== passwordConfirmed) {
@@ -86,11 +86,14 @@ export const getUserRepo = (userId) => {
     },
     
     
-    async updateUser(id, updatedUser) {
-      const entryRef = doc(database, USER_DB_NAME, id);
-      const object = await getDoc(entryRef);
-      if (object.id === userId) {
-        await updateDoc(entryRef, updatedUser);
+    async updateUser(email, updatedData) {
+      const objectsCollection = collection(database, USER_DB_NAME);
+      const userQuery = query(objectsCollection, where("email", "==", email));
+      const querySnapshot = await getDocs(userQuery);
+      const users = querySnapshot.docs.map(docToObject);
+      if (users.length != 0) {
+        const entryRef = doc(database, USER_DB_NAME, users[0].id);
+        await updateDoc(entryRef, updatedData);
       }
     },
   };

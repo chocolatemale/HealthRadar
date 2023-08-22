@@ -122,7 +122,7 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
       quality: 1,
     });
 
-    if (!result.cancelled) {
+    if (!result.canceled) {
       setImage(result.uri);
     }
   };
@@ -154,7 +154,7 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
       quality: 1,
     });
   
-    if (!result.cancelled) {
+    if (!result.canceled) {
       setImage(result.uri);
     }
   };
