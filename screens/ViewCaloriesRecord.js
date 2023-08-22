@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { Modal, SafeAreaView, StatusBar } from 'react-native';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faPlus,
@@ -27,6 +28,9 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
       setSelectedDate(selectedDate);
     }
   };
+  const [isImageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
   
   useEffect(() => {
     if (isFocused) {
@@ -53,7 +57,28 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
     );
   }, [foodEntries]);
 
+  const renderImageModal = () => {
+    return (
+      <Modal
+        visible={isImageModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setImageModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={modalStyles.modalContainer}
+          onPress={() => setImageModalVisible(false)}
+        >
+          <Image source={{ uri: selectedImage }} style={modalStyles.fullImage} />
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+  
+  
   return (
+    <>
+    {renderImageModal()}
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -68,59 +93,70 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
 
       {/* List of Food Entries */}
       <ScrollView style={styles.entriesContainer}>
-        {/* Placeholder for food entries */}
         {foodEntries.length == 0 ? (
           <Text style={styles.placeholderText}>No food entries yet</Text>
         ) : (
           foodEntries.map((entry) => (
             <TouchableOpacity 
-            key={entry.id} 
-            onPress={() => {
-              setSelectedEntry(entry);
-              navigation.navigate("AddCaloriesEntry", { selectedEntry: entry });
-            }}
-            style={styles.entry}>
+              key={entry.id} 
+              onPress={() => {
+                setSelectedEntry(entry);
+                navigation.navigate("AddCaloriesEntry", { selectedEntry: entry });
+              }}
+              style={styles.entry}>
+              
               <View style={styles.leftContainer}>
                 <Text style={styles.descriptionText}>{entry.name}</Text>
                 <Text style={styles.weightText}>{entry.weight}g</Text>
               </View>
-          
-              {entry.location && (
-                <TouchableOpacity
-                  style={styles.mapContainer}
-                  onPress={() => {
-                    // Determine the platform to provide appropriate map URL
-                    const url = Platform.OS === 'ios' 
-                      ? `http://maps.apple.com/?ll=${entry.location.latitude},${entry.location.longitude}`
-                      : `geo:${entry.location.latitude},${entry.location.longitude}`;
-          
-                    Linking.openURL(url);
-                  }}
-                >
-                  <MapView
-                    style={styles.mapStyle}
-                    initialRegion={{
-                      latitude: entry.location.latitude,
-                      longitude: entry.location.longitude,
-                      latitudeDelta: 0.01,
-                      longitudeDelta: 0.01,
-                    }}
-                    scrollEnabled={false}
-                    zoomEnabled={false}
-                    rotateEnabled={false}
-                    pitchEnabled={false}
-                    cacheEnabled={true}
-                  >
-                    <Marker
-                      coordinate={{
-                        latitude: entry.location.latitude,
-                        longitude: entry.location.longitude,
-                      }}
-                    />
-                  </MapView>
+              
+              <View style={styles.rightContainer}>
+              {entry.image && (
+                <TouchableOpacity onPress={() => {
+                  setSelectedImage(entry.image);
+                  setImageModalVisible(true);
+                }}>
+                  <Image source={{ uri: entry.image }} style={styles.imageStyle} />
                 </TouchableOpacity>
               )}
-          
+                
+                {entry.location && (
+                  <TouchableOpacity
+                    style={styles.mapContainer}
+                    onPress={() => {
+                      // Determine the platform to provide appropriate map URL
+                      const url = Platform.OS === 'ios' 
+                        ? `http://maps.apple.com/?ll=${entry.location.latitude},${entry.location.longitude}`
+                        : `geo:${entry.location.latitude},${entry.location.longitude}`;
+              
+                      Linking.openURL(url);
+                    }}
+                  >
+                    <MapView
+                      style={styles.mapStyle}
+                      initialRegion={{
+                        latitude: entry.location.latitude,
+                        longitude: entry.location.longitude,
+                        latitudeDelta: 0.01,
+                        longitudeDelta: 0.01,
+                      }}
+                      scrollEnabled={false}
+                      zoomEnabled={false}
+                      rotateEnabled={false}
+                      pitchEnabled={false}
+                      cacheEnabled={true}
+                    >
+                      <Marker
+                        coordinate={{
+                          latitude: entry.location.latitude,
+                          longitude: entry.location.longitude,
+                        }}
+                      />
+                    </MapView>
+                  </TouchableOpacity>
+                )}
+              </View>
+
               <Text 
                 style={[
                   styles.caloriesText, 
@@ -133,6 +169,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
           ))          
         )}
       </ScrollView>
+
 
       {/* Total Calories */}
       <View style={styles.totalContainer}>
@@ -163,8 +200,24 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
         </View>
       </View>
     </View>
+    </>
   );
 };
+
+const modalStyles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  fullImage: {
+    width: "100%",
+    height: "70%",
+    resizeMode: "contain",
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -280,7 +333,7 @@ const styles = StyleSheet.create({
   },
   caloriesText: {
     fontSize: 18,
-    marginLeft: 10,
+    marginLeft: 5,
     width: 75,  // Setting a width to accommodate a maximum of 3 digits
     color: 'green', // default color
     textAlign: 'right',  // Align the text to the right
@@ -307,6 +360,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: 'black',
     fontSize: 16,
+  },
+  imageStyle: {
+    width: 40,
+    height: 40,
+    marginVertical: 5,
+    borderRadius: 10,
+    marginRight: 10,
   },
 });
 
