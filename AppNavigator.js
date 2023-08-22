@@ -29,14 +29,6 @@ const TodayStack = ({ firebaseClient }) => {
           <ViewCaloriesRecord {...props} foodRepo={firebaseClient.foodRepo} />
         )}
       </Stack.Screen>
-      <Stack.Screen
-        name="AddCaloriesEntry"
-        options={{ title: "Add Calories Entry" }}
-      >
-        {(props) => (
-          <AddCaloriesEntry {...props} foodRepo={firebaseClient.foodRepo} />
-        )}
-      </Stack.Screen>
     </Stack.Navigator>
   );
 };
@@ -47,9 +39,6 @@ const FoodStack = ({ firebaseClient }) => {
       <Stack.Screen name="FoodOverview" options={{ headerShown: false }}>
         {(props) => <FoodOverview {...props} />}
       </Stack.Screen>
-      <Stack.Screen name="FoodDetails" options={{ title: "Food Details" }}>
-        {(props) => <FoodDetails {...props} />}
-      </Stack.Screen>
     </Stack.Navigator>
   );
 };
@@ -57,47 +46,68 @@ const FoodStack = ({ firebaseClient }) => {
 const AppNavigator = ({ firebaseClient }) => {
   return (
     <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-            if (route.name === "Overview") {
-              iconName = faHome;
-            } else if (route.name === "Daily") {
-              iconName = faClock;
-            } else if (route.name === "Nutrition") {
-              iconName = faAppleAlt;
-            } else if (route.name === "Profile") {
-              iconName = faUser;
-            }
-            return (
-              <FontAwesomeIcon icon={iconName} size={size} color={color} />
-            );
-          },
-          tabBarActiveTintColor: "#3498db",
-          tabBarInactiveTintColor: "gray",
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: "bold",
-          },
-          tabBarStyle: {
-            backgroundColor: "#f4f4f4",
-          },
-        })}
+      <Stack.Navigator
+        screenOptions={{
+          headerBackTitle: 'Back',  // Set default back button title for all screens
+        }}
       >
-        <Tab.Screen name="Overview">
-          {(props) => <HomePage {...props} firebaseClient={firebaseClient} />}
-        </Tab.Screen>
-        <Tab.Screen name="Daily">
-          {(props) => <TodayStack {...props} firebaseClient={firebaseClient} />}
-        </Tab.Screen>
-        <Tab.Screen name="Nutrition">
-          {(props) => <FoodStack {...props} firebaseClient={firebaseClient} />}
-        </Tab.Screen>
-        <Tab.Screen name="Profile">
-            {(props) => <Profile {...props} />}
-        </Tab.Screen>
-      </Tab.Navigator>
+        <Stack.Screen name="TabHome" options={{ headerShown: false }}>
+          {(props) => (
+            <Tab.Navigator
+              screenOptions={({ route }) => ({
+                tabBarIcon: ({ focused, color, size }) => {
+                  let iconName;
+                  if (route.name === "Overview") {
+                    iconName = faHome;
+                  } else if (route.name === "Daily") {
+                    iconName = faClock;
+                  } else if (route.name === "Nutrition") {
+                    iconName = faAppleAlt;
+                  } else if (route.name === "Profile") {
+                    iconName = faUser;
+                  }
+                  return (
+                    <FontAwesomeIcon icon={iconName} size={size} color={color} />
+                  );
+                },
+                tabBarActiveTintColor: "#3498db",
+                tabBarInactiveTintColor: "gray",
+                tabBarLabelStyle: {
+                  fontSize: 12,
+                  fontWeight: "bold",
+                },
+                tabBarStyle: {
+                  backgroundColor: "#f4f4f4",
+                },
+              })}
+            >
+              <Tab.Screen name="Overview">
+                {(props) => <HomePage {...props} firebaseClient={firebaseClient} />}
+              </Tab.Screen>
+              <Tab.Screen name="Daily">
+                {(props) => <TodayStack {...props} firebaseClient={firebaseClient} />}
+              </Tab.Screen>
+              <Tab.Screen name="Nutrition">
+                {(props) => <FoodStack {...props} firebaseClient={firebaseClient} />}
+              </Tab.Screen>
+              <Tab.Screen name="Profile">
+                {(props) => <Profile {...props} />}
+              </Tab.Screen>
+            </Tab.Navigator>
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="FoodDetails" options={{ title: "Food Details" }}>
+          {(props) => <FoodDetails {...props} />}
+        </Stack.Screen>
+        <Stack.Screen
+          name="AddCaloriesEntry"
+          options={{ title: "Add Calories Entry" }}
+        >
+          {(props) => (
+            <AddCaloriesEntry {...props} foodRepo={firebaseClient.foodRepo} />
+          )}
+        </Stack.Screen>
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };
