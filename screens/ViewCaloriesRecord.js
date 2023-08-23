@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from "react-native";
 import { Modal, SafeAreaView, StatusBar } from 'react-native';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faPlus,
-  faTrash,
+  faCog,
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { useIsFocused } from "@react-navigation/native";
@@ -12,8 +12,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MapView, { Marker } from 'react-native-maps';
 import { Linking, Platform } from 'react-native';
 import { ScrollView } from 'react-native';
+import { auth } from '../firebase';
 
-const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
+const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
   // Include the navigation prop
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [foodEntries, setFoodEntries] = useState([]);
@@ -44,6 +45,8 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
         });
 
         setFoodEntries(filteredEntries);
+        caloriesGoalRepo.getCaloriesGoal(auth.currentUser.uid).then(goal => {
+          setCaloriesGoal(goal)});
       });
     }
   }, [foodRepo, isFocused, selectedDate]);
@@ -74,7 +77,34 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
       </Modal>
     );
   };
-  
+
+  const [caloriesGoal, setCaloriesGoal] = useState(0); // Initialize to zero or some default value
+
+  const handleCaloriesGoal = () => {
+    Alert.prompt(
+      "Set Calories Goal",
+      "Enter your daily calories goal:",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: (value) => {
+            const parsedValue = parseInt(value);
+            if (!isNaN(parsedValue)) {
+              caloriesGoalRepo.setCaloriesGoal(parsedValue);
+            } else {
+              Alert.alert("Invalid Input", "Please enter a valid number.");
+            }
+          },
+        },
+      ],
+      "plain-text",
+      ""
+    );
+  };
   
   return (
     <>
@@ -82,12 +112,20 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+      <View style={styles.textAndSettingsContainer}>
         <Text style={styles.headerText}>Calories Record</Text>
         <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate("AddCaloriesEntry")} // Navigate to the AddCaloriesEntry screen
+            style={styles.settingsButton}
+            onPress={handleCaloriesGoal}
         >
-          <FontAwesomeIcon icon={faPlus} size={20} color="white" />
+            <FontAwesomeIcon icon={faCog} size={15} color="white" />
+        </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+            style={styles.addRectangularButton}
+            onPress={() => navigation.navigate("AddCaloriesEntry")}
+        >
+            <FontAwesomeIcon icon={faPlus} size={25} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -196,7 +234,14 @@ const ViewCaloriesRecord = ({ navigation, foodRepo }) => {
         </View>
 
         <View style={styles.caloriesContainer}>
-          <Text style={styles.totalText}>Calories: {totalCalories}</Text>
+        <Text 
+          style={[
+            styles.totalText, 
+            { color: totalCalories <= caloriesGoal ? 'green' : 'red' }
+          ]}
+        >
+          {`${totalCalories}/${caloriesGoal} cal`}
+        </Text>
         </View>
       </View>
     </View>
@@ -227,10 +272,13 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10, // Adjust this value to get desired distance
     marginTop: 10,    // Adjust this value to match the above one
+  },
+  textAndSettingsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },  
   headerText: {
     fontSize: 24,
@@ -368,6 +416,20 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     borderRadius: 10,
     marginRight: 10,
+  },
+  settingsButton: {
+    backgroundColor: "#3498db",
+    padding: 8,
+    borderRadius: 15,
+    marginLeft: 5, // Moving it closer to the text
+  },
+  addRectangularButton: {
+    backgroundColor: "#3498db",
+    paddingHorizontal: 50,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginLeft: 'auto', // This will push the button to the far right
+
   },
 });
 

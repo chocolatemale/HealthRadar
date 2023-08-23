@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AppNavigator from "./AppNavigator";
 import LoginPage from "./screens/LoginPage";
-import { getFirebaseRepo } from "./repos/FirebaseRepo";
+import { getFirebaseRepo, getCaloriesGoalRepo } from "./repos/FirebaseRepo";
 import { getUserRepo } from "./repos/UserRepo";
 import { auth } from './firebase'; // Import your Firebase auth module
 
@@ -9,6 +9,7 @@ export default function App() {
   const [userId, setUserId] = useState(null);
   const firebaseClient = {
     foodRepo: getFirebaseRepo("food", userId),
+    caloriesGoalRepo: getCaloriesGoalRepo(userId)  // Added this line
   };
 
   useEffect(() => {

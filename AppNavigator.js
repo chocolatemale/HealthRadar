@@ -26,12 +26,16 @@ const TodayStack = ({ firebaseClient }) => {
     <Stack.Navigator>
       <Stack.Screen name="ViewCaloriesRecord" options={{ headerShown: false }}>
         {(props) => (
-          <ViewCaloriesRecord {...props} foodRepo={firebaseClient.foodRepo} />
+          <ViewCaloriesRecord {...props} 
+             foodRepo={firebaseClient.foodRepo}
+             caloriesGoalRepo={firebaseClient.caloriesGoalRepo}  // Added this line
+          />
         )}
       </Stack.Screen>
     </Stack.Navigator>
   );
 };
+
 
 const FoodStack = ({ firebaseClient }) => {
   return (

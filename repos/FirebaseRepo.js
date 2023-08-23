@@ -8,6 +8,7 @@ import {
   getDoc,
   query,
   where,
+  setDoc
 } from "firebase/firestore";
 import { database } from "../firebase";
 
@@ -96,6 +97,35 @@ export const getFirebaseRepo = (dbName, userId) => {
         // Remove the oldest one
         await this.removeObject(matchingRecords[0].id);
       }
-    }        
+    },
+    async setCaloriesGoal(goalData) {
+      const goalsCollection = collection(database, "caloriesGoal");
+      const goalQuery = query(goalsCollection, where("userId", "==", goalData.userId));
+      const querySnapshot = await getDocs(goalQuery);
+  
+      if (!querySnapshot.empty) {
+          const goalId = querySnapshot.docs[0].id;
+          await this.updateObject(goalId, goalData);
+      } else {
+          await this.addObject(goalData);
+      }
+    },          
+  };
+};
+
+export const getCaloriesGoalRepo = (userId) => {
+  return {
+    async getCaloriesGoal() {
+      const docSnapshot = await getDoc(doc(database, "caloriesGoal", userId));
+      if (docSnapshot.exists()) {
+        return docSnapshot.data().caloriesGoal;
+      }
+      return null;
+    },
+    async setCaloriesGoal(goal) {
+      await setDoc(doc(database, "caloriesGoal", userId), {
+        caloriesGoal: goal
+      });
+    }
   };
 };
