@@ -5,27 +5,75 @@ import { faEnvelope, faWeight, faClock, faAppleAlt } from '@fortawesome/free-sol
 import { useState, useEffect } from 'react';
 import { getUserRepo } from '../repos/UserRepo'; // Make sure the path is correct
 import { auth } from '../firebase';
+import { database } from '../firebase';
+import { getDocs, collection, query, where, orderBy } from 'firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
 
 const HomePage = ({ navigation }) => {
-  const progress = 0.73; // Example progress value
   const today = 880; // Example value for today's calories
   const target = 1200; // Example value for target calories
   const dayStreak = 23; // Example value for days streak
   const [user, setUser] = useState({});
   const currentUserEmail = auth.currentUser && auth.currentUser.email;
+  const [initialWeight, setInitialWeight] = useState(null);
+  const [latestWeight, setLatestWeight] = useState(null);
+  const [weightTarget, setWeightTarget] = useState(null);
+  const userId = auth.currentUser.uid;
 
-  useEffect(() => {
+  useFocusEffect(
+  React.useCallback(() => {
     const fetchUser = async () => {
       const userRepo = getUserRepo();
       const userData = await userRepo.getUserByEmail(currentUserEmail);
       setUser(userData || {});
     };
+    const fetchWeightData = async () => {
+      const userWeightCollection = collection(database, "weights");
+      const userQuery = query(
+        userWeightCollection,
+        where("userId", "==", userId),
+        orderBy("datetime", "desc")
+      );
+      const querySnapshot = await getDocs(userQuery);
+      const weights = querySnapshot.docs.map((d) => ({
+        ...d.data(),
+        id: d.id,
+      }));
+  
+      // If we have weight data:
+      if (weights.length) {
+
+        const latest = weights[0];
+        setLatestWeight(latest.current);
+        setWeightTarget(latest.target);
+        const earliest = weights[weights.length - 1].current;
+        setInitialWeight(earliest);
+      
+        console.log("Latest Weight:", latest.current);
+        console.log("Weight Target:", latest.target);
+        console.log("Initial Weight:", earliest);
+      }
+      
+    };
 
     if (currentUserEmail) {
       fetchUser();
+      fetchWeightData();
     }
-  }, [currentUserEmail]);
 
+    // Return a cleanup function to reset any state or stop side-effects.
+    return () => {
+      // For example, you might want to reset the user data when leaving the screen:
+      setUser({});
+    };
+  }, [currentUserEmail])
+);
+
+  const progress = initialWeight && weightTarget
+    ? Math.min(1, Math.abs(((latestWeight - initialWeight) / (weightTarget - initialWeight))))
+    : 0;
+  console.log(progress)
+  
   return (
     <View style={styles.container}>
       <View style={styles.searchBarContainer}>
@@ -75,16 +123,20 @@ const HomePage = ({ navigation }) => {
         ))}
       </View>
     </View>
-      <TouchableOpacity
-        style={styles.targetProgressContainer}
-        onPress={() => navigation.navigate('TargetProgress')}
+        <TouchableOpacity
+          style={styles.targetProgressContainer}
+          onPress={() => navigation.navigate('Weight')}
       >
-        <Text style={styles.targetProgress}>Target Progress</Text>
-        <View style={styles.goalBarBackground}>
-          <View style={{ ...styles.goalBar, width: `${progress * 100}%` }}>
-            <Text style={styles.progressText}>{`${(progress * 100).toFixed(0)}%`}</Text>
+          <Text style={styles.targetProgress}>
+              Weight Progress from {initialWeight}kg to {weightTarget}kg
+          </Text>
+          <View style={styles.goalBarBackground}>
+              <View style={{ ...styles.goalBar, width: `${progress * 100}%` }}>
+                  <Text style={styles.progressText}>
+                      {latestWeight ? `${latestWeight}kg, ` : ""}{`${(progress * 100).toFixed(0)}%`}
+                  </Text>
+              </View>
           </View>
-        </View>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.caloriesTodayContainer}
@@ -176,22 +228,29 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   goalBarBackground: {
-    backgroundColor: '#ADD8E6',
+    backgroundColor: '#E0E0E0',  // Light grey for clearer distinction
     height: 20,
     borderRadius: 5,
+    position: 'relative'  // This is needed for absolute positioning of the weight texts
   },
   goalBar: {
     height: 20,
-    backgroundColor: '#FFB6C1',
+    // Use a gradient color from light blue to deep blue for a cooler appearance:
+    backgroundColor: '#3498db',
     justifyContent: 'center',
     alignItems: 'flex-end',
     borderRadius: 5,
+    overflow: 'hidden' // Ensure child components don't exceed this component
   },
   progressText: {
     color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
     paddingRight: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background for better readability
+    padding: 2,
+    borderRadius: 3,
+    overflow: 'hidden',
   },
   caloriesTodayContainer: {
     padding: 20,

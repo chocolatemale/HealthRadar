@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginBottom: 20,
-    height: 50,
+    height: 60,
   },
   calendarContainer: {
     flexDirection: "row",
@@ -288,6 +288,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     width: 200,  // Adjusted width to accommodate up to 5 digits
     textAlign: 'right',
+    paddingRight: 5,  // Adjust this value to move the text away from the right border
   },
   datePicker: {
     flexDirection: "row",
