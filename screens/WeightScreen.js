@@ -1,21 +1,25 @@
-// /screens/WeightScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet, Alert
+} from 'react-native';
 import { database, auth } from '../firebase';
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, addDoc, getDocs, orderBy, limit, collection, query, where } from "firebase/firestore";
 
 const WeightScreen = ({ navigation }) => {
   const [weightTarget, setWeightTarget] = useState('');
   const [latestWeight, setLatestWeight] = useState('');
   const [weightToGo, setWeightToGo] = useState(null);
+  const [isEditingTarget, setIsEditingTarget] = useState(false);
   const userId = auth.currentUser.uid;
 
   useEffect(() => {
     const fetchData = async () => {
-      const userWeightRef = doc(database, 'weights', userId);
-      const userWeightDoc = await getDoc(userWeightRef);
-      if (userWeightDoc.exists()) {
-        const { target, current } = userWeightDoc.data();
+      const userWeightCollection = collection(database, 'weights');
+      const userQuery = query(userWeightCollection, where('userId', '==', userId), orderBy('datetime', 'desc'), limit(1));
+      const querySnapshot = await getDocs(userQuery);
+      const weights = querySnapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+      if (weights.length) {
+        const { target, current } = weights[0];
         setWeightTarget(target);
         setLatestWeight(current);
         setWeightToGo(target - current);
@@ -25,27 +29,54 @@ const WeightScreen = ({ navigation }) => {
   }, []);
 
   const handleSave = async () => {
-    const userWeightRef = doc(database, 'weights', userId);
-    await setDoc(userWeightRef, {
+    const userWeightCollection = collection(database, 'weights');
+    await addDoc(userWeightCollection, {
       target: parseFloat(weightTarget),
-      current: parseFloat(latestWeight)
+      current: parseFloat(latestWeight),
+      datetime: new Date(),
+      userId: userId
     });
     setWeightToGo(weightTarget - latestWeight);
+  };
+
+
+  const toggleEditTarget = () => {
+    setIsEditingTarget(!isEditingTarget);
+  };
+
+  const confirmChange = () => {
+    toggleEditTarget();
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Weight Management</Text>
-      <TextInput
-        placeholder="Set Weight Target"
-        value={weightTarget}
-        onChangeText={setWeightTarget}
-        style={styles.input}
-        keyboardType="numeric"
-      />
+      
+      <View style={styles.row}>
+        <Text style={styles.text}>Weight Target: {weightTarget}kg</Text>
+        <TouchableOpacity onPress={toggleEditTarget} style={styles.editButton}>
+          <Text style={styles.buttonText}>Edit</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {isEditingTarget && (
+        <>
+          <TextInput
+            value={String(weightTarget)}
+            onChangeText={setWeightTarget}
+            style={styles.input}
+            keyboardType="numeric"
+          />
+          <TouchableOpacity onPress={confirmChange} style={styles.confirmButton}>
+            <Text style={styles.buttonText}>Confirm Change</Text>
+          </TouchableOpacity>
+        </>
+      )}
+      
+      <Text style={styles.text}>Latest Weight: {latestWeight}kg</Text>
       <TextInput
         placeholder="Record Latest Weight"
-        value={latestWeight}
+        value={String(latestWeight)}
         onChangeText={setLatestWeight}
         style={styles.input}
         keyboardType="numeric"
@@ -101,6 +132,28 @@ const styles = StyleSheet.create({
   infoText: {
     marginTop: 20,
     textAlign: 'center',
+    fontSize: 18,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  editButton: {
+    backgroundColor: '#2c3e50',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  confirmButton: {
+    backgroundColor: '#27ae60',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  text: {
     fontSize: 18,
   },
 });
