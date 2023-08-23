@@ -17,6 +17,7 @@ import AddCaloriesEntry from "./screens/AddCaloriesEntry";
 import Profile from './screens/Profile';
 import FoodOverview from './screens/FoodOverview';
 import FoodDetails from './screens/FoodDetails';
+import WeightScreen from './screens/WeightScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -106,6 +107,9 @@ const AppNavigator = ({ firebaseClient }) => {
           {(props) => (
             <AddCaloriesEntry {...props} foodRepo={firebaseClient.foodRepo} />
           )}
+        </Stack.Screen>
+        <Stack.Screen name="WeightScreen" options={{ title: "Weight Entry" }}>
+          {(props) => <WeightScreen {...props} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

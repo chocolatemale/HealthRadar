@@ -1,13 +1,22 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEnvelope, faWeight, faAppleAlt, faLightbulb } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faWeight, faUtensils, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 
 const HomePage = ({ navigation }) => {
-  const progress = 0.73; // Example progress value
-  const today = 880; // Example value for today's calories
-  const target = 1200; // Example value for target calories
-  const dayStreak = 23; // Example value for days streak
+  const progress = 0.73;
+  const today = 880;
+  const target = 1200;
+  const dayStreak = 23;
+
+  const handleButtonPress = (buttonLabel) => {
+    if (buttonLabel === 'Food') {
+      navigation.navigate('Daily');
+    } else if (buttonLabel === 'Weight') {
+      navigation.navigate('WeightScreen');
+    }
+    // Add further navigation actions for other buttons if required in the future.
+  };
 
   return (
     <View style={styles.container}>
@@ -18,9 +27,13 @@ const HomePage = ({ navigation }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.buttonRow}>
-        {['Target weight', 'NutritionFacts', 'Tips'].map((buttonLabel, index) => (
-          <TouchableOpacity key={index} style={styles.bigButton}>
-            <FontAwesomeIcon icon={[faWeight, faAppleAlt, faLightbulb][index]} size={30} color="white" />
+        {['Weight', 'Food', 'Tips'].map((buttonLabel, index) => (
+          <TouchableOpacity 
+            key={index} 
+            style={[styles.bigButton, styles.shadow]}
+            onPress={() => handleButtonPress(buttonLabel)}
+          >
+            <FontAwesomeIcon icon={[faWeight, faUtensils, faLightbulb][index]} size={30} color="white" />
             <Text style={styles.buttonText}>{buttonLabel}</Text>
           </TouchableOpacity>
         ))}
@@ -60,7 +73,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f4f4f4',
-    padding: 10,
+    padding: 20,
   },
   searchBarContainer: {
     flexDirection: 'row',
@@ -69,16 +82,26 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 25,
     padding: 10,
     flex: 1,
     backgroundColor: '#ffffff',
+    marginRight: 10,
+    elevation: 5,  // Android shadow
+    shadowColor: 'black',  // iOS shadow
+    shadowOffset: { width: 0, height: 2 },  // iOS shadow
+    shadowOpacity: 0.25,  // iOS shadow
+    shadowRadius: 3.84,  // iOS shadow
   },
   mailButton: {
     padding: 10,
     backgroundColor: '#2c3e50',
-    borderRadius: 20,
-    marginLeft: 5,
+    borderRadius: 25,
+    elevation: 5,  // Android shadow
+    shadowColor: 'black',  // iOS shadow
+    shadowOffset: { width: 0, height: 2 },  // iOS shadow
+    shadowOpacity: 0.25,  // iOS shadow
+    shadowRadius: 3.84,  // iOS shadow
   },
   buttonRow: {
     flexDirection: 'row',
@@ -90,12 +113,20 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 10,
     alignItems: 'center',
-    borderRadius: 8,
-    width: '30%',
+    borderRadius: 10,
+    flex: 1,
+    marginHorizontal: 5,
   },
   buttonText: {
     color: '#ffffff',
     marginTop: 5,
+  },
+  shadow: {
+    elevation: 5,  // Android shadow
+    shadowColor: 'black',  // iOS shadow
+    shadowOffset: { width: 0, height: 2 },  // iOS shadow
+    shadowOpacity: 0.25,  // iOS shadow
+    shadowRadius: 3.84,  // iOS shadow
   },
   targetProgressContainer: {
     backgroundColor: '#ffffff',
