@@ -48,10 +48,6 @@ const HomePage = ({ navigation }) => {
         setWeightTarget(latest.target);
         const earliest = weights[weights.length - 1].current;
         setInitialWeight(earliest);
-      
-        console.log("Latest Weight:", latest.current);
-        console.log("Weight Target:", latest.target);
-        console.log("Initial Weight:", earliest);
       }
       
     };
@@ -72,7 +68,6 @@ const HomePage = ({ navigation }) => {
   const progress = initialWeight && weightTarget
     ? Math.min(1, Math.abs(((latestWeight - initialWeight) / (weightTarget - initialWeight))))
     : 0;
-  console.log(progress)
   
   return (
     <View style={styles.container}>
@@ -360,3 +355,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomePage;
+

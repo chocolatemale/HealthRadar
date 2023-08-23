@@ -240,7 +240,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
             { color: totalCalories <= caloriesGoal ? 'green' : 'red' }
           ]}
         >
-          {`${totalCalories}/${caloriesGoal} cal`}
+          {`${totalCalories} / ${caloriesGoal} cal`}
         </Text>
         </View>
       </View>
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   },
   addRectangularButton: {
     backgroundColor: "#3498db",
-    paddingHorizontal: 50,
+    paddingHorizontal: 30,
     paddingVertical: 10,
     borderRadius: 5,
     marginLeft: 'auto', // This will push the button to the far right
