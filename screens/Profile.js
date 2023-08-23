@@ -102,6 +102,14 @@ const Profile = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
+        <Image 
+          source={{ uri: user.photoURL || 'https://via.placeholder.com/150' }} 
+          style={styles.backgroundImage}
+          blurRadius={5}
+        />
+        {/* Blurred background image */}
+        <View style={styles.overlay} />
+        {/* Semi-transparent overlay for frosted effect */}
         <TouchableOpacity onPress={chooseImageOption}>
           <Image 
             source={{ uri: user.photoURL || 'https://via.placeholder.com/150' }} 
@@ -142,6 +150,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 5,
     borderBottomColor: '#ddd',
     padding: 20,
+    position: 'relative',
   },
   profileImage: {
     width: 150,
@@ -150,6 +159,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderColor: '#FFF',
     borderWidth: 2,
+    zIndex: 1,
   },
   profileName: {
     fontSize: 24,
@@ -189,6 +199,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    opacity: 0.6,
   },
 });
 

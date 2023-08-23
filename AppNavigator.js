@@ -6,18 +6,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import {
   faHome,
   faClock,
-  faUtensils,
   faAppleAlt,
-  faUser,
+  faWeight,
 } from "@fortawesome/free-solid-svg-icons";
 
 import HomePage from "./screens/HomePage";
 import ViewCaloriesRecord from "./screens/ViewCaloriesRecord";
 import AddCaloriesEntry from "./screens/AddCaloriesEntry";
-import Profile from './screens/Profile';
 import FoodOverview from './screens/FoodOverview';
 import FoodDetails from './screens/FoodDetails';
 import WeightScreen from './screens/WeightScreen';
+import Profile from './screens/Profile';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -64,8 +63,8 @@ const AppNavigator = ({ firebaseClient }) => {
                     iconName = faClock;
                   } else if (route.name === "Nutrition") {
                     iconName = faAppleAlt;
-                  } else if (route.name === "Profile") {
-                    iconName = faUser;
+                  } else if (route.name === "Weight") {
+                    iconName = faWeight;
                   }
                   return (
                     <FontAwesomeIcon icon={iconName} size={size} color={color} />
@@ -85,14 +84,14 @@ const AppNavigator = ({ firebaseClient }) => {
               <Tab.Screen name="Overview">
                 {(props) => <HomePage {...props} firebaseClient={firebaseClient} />}
               </Tab.Screen>
+              <Tab.Screen name="Weight">
+                {(props) => <WeightScreen {...props} firebaseClient={firebaseClient}/>}
+              </Tab.Screen>
               <Tab.Screen name="Daily">
                 {(props) => <TodayStack {...props} firebaseClient={firebaseClient} />}
               </Tab.Screen>
               <Tab.Screen name="Nutrition">
                 {(props) => <FoodStack {...props} firebaseClient={firebaseClient} />}
-              </Tab.Screen>
-              <Tab.Screen name="Profile">
-                {(props) => <Profile {...props} />}
               </Tab.Screen>
             </Tab.Navigator>
           )}
@@ -108,8 +107,8 @@ const AppNavigator = ({ firebaseClient }) => {
             <AddCaloriesEntry {...props} foodRepo={firebaseClient.foodRepo} />
           )}
         </Stack.Screen>
-        <Stack.Screen name="WeightScreen" options={{ title: "Weight Entry" }}>
-          {(props) => <WeightScreen {...props} />}
+        <Stack.Screen name="Profile">
+          {(props) => <Profile {...props} firebaseClient={firebaseClient} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
