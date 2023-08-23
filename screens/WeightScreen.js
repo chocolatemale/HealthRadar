@@ -42,35 +42,36 @@ const WeightScreen = ({ navigation }) => {
   const [weightData, setWeightData] = useState([]);
   const userId = auth.currentUser.uid;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const userWeightCollection = collection(database, "weights");
-      const userQuery = query(
-        userWeightCollection,
-        where("userId", "==", userId),
-        orderBy("datetime", "desc")
-      );
-      const querySnapshot = await getDocs(userQuery);
-      const weights = querySnapshot.docs.map((d) => ({
-        ...d.data(),
-        id: d.id,
-      }));
-      setWeightData(
-        weights.reverse().map((w, index) => ({
-          x: index, // Instead of a time-based value, use the index of the data point
-          y: w.current,
-          date: w.datetime.toDate(), // Store the date in a separate property
-        }))
-      );
+  const fetchWeightData = async () => {
+    const userWeightCollection = collection(database, "weights");
+    const userQuery = query(
+      userWeightCollection,
+      where("userId", "==", userId),
+      orderBy("datetime", "desc")
+    );
+    const querySnapshot = await getDocs(userQuery);
+    const weights = querySnapshot.docs.map((d) => ({
+      ...d.data(),
+      id: d.id,
+    }));
+    setWeightData(
+      weights.reverse().map((w, index) => ({
+        x: index,
+        y: w.current,
+        date: w.datetime.toDate(),
+      }))
+    );
 
-      if (weights.length) {
-        const { target, current } = weights[weights.length - 1];
-        setWeightTarget(target);
-        setLatestWeight(current);
-        setWeightToGo(target - current);
-      }
-    };
-    fetchData();
+    if (weights.length) {
+      const { target, current } = weights[weights.length - 1];
+      setWeightTarget(target);
+      setLatestWeight(current);
+      setWeightToGo(target - current);
+    }
+  };
+
+  useEffect(() => {
+    fetchWeightData(); // Call fetchWeightData inside the useEffect
   }, []);
 
   const handleSave = async () => {
@@ -90,6 +91,7 @@ const WeightScreen = ({ navigation }) => {
       setWeightToGo(weightTarget - latestWeight);
       Alert.alert("Success", "Entry saved successfully");
       Keyboard.dismiss(); // Add this line to dismiss the keyboard
+      fetchWeightData(); // Refresh the graph by fetching data again after saving
     } catch (error) {
       Alert.alert("Error", "Failed to save entry");
     }
