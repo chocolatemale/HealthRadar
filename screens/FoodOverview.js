@@ -84,6 +84,8 @@ const FoodOverview = ({ navigation }) => {
             const visitRepo = getFirebaseRepo("visitedFoods", userId);
             await visitRepo.clearVisitedRecords();
             setVisitedHistory([]); // Clear local state.
+            // Reload the visited history after clearing
+            fetchVisitedHistory();
           }
         }
       ]
@@ -187,8 +189,13 @@ const FoodOverview = ({ navigation }) => {
           onEndEditing={handleSearch}
         />
         {foods.length > 0 && (
-          <TouchableOpacity style={styles.clearSearchButton} onPress={() => { setFoods([]); setSearchQuery(''); }}>
-            <Text style={styles.clearSearchButtonText}>Clear Search</Text>
+          <TouchableOpacity style={styles.clearSearchButton} onPress={() => { 
+              setFoods([]); 
+              setSearchQuery(''); 
+              // Reload the visited history after clearing the search
+              fetchVisitedHistory();
+              }}>
+              <Text style={styles.clearSearchButtonText}>Clear Search</Text>
           </TouchableOpacity>
         )}
       </View>
