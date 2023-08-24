@@ -36,17 +36,19 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
   useEffect(() => {
     if (isFocused) {
       foodRepo.getAllObjects().then((entries) => {
-           // Here's where you'll adjust the filtering logic
         const filteredEntries = entries.filter(entry => {
-            // Convert Firestore timestamp to JavaScript Date
             const entryDate = new Date(entry.date.seconds * 1000 + entry.date.nanoseconds / 1000000);
-            
             return entryDate.toDateString() === selectedDate.toDateString();
         });
-
-        setFoodEntries(filteredEntries);
         caloriesGoalRepo.getCaloriesGoal(auth.currentUser.uid).then(goal => {
           setCaloriesGoal(goal)});
+        const sortedEntries = filteredEntries.sort((a, b) => {
+            const dateA = new Date(a.date.seconds * 1000 + a.date.nanoseconds / 1000000);
+            const dateB = new Date(b.date.seconds * 1000 + b.date.nanoseconds / 1000000);
+            return dateB - dateA;  // for descending order
+        });
+    
+        setFoodEntries(sortedEntries);
       });
     }
   }, [foodRepo, isFocused, selectedDate]);
@@ -164,9 +166,9 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
                     onPress={() => {
                       // Determine the platform to provide appropriate map URL
                       const url = Platform.OS === 'ios' 
-                        ? `http://maps.apple.com/?ll=${entry.location.latitude},${entry.location.longitude}`
-                        : `geo:${entry.location.latitude},${entry.location.longitude}`;
-              
+                        ? `http://maps.apple.com/?q=${entry.location.latitude},${entry.location.longitude}`
+                        : `geo:${entry.location.latitude},${entry.location.longitude}?q=${entry.location.latitude},${entry.location.longitude}`;
+
                       Linking.openURL(url);
                     }}
                   >
@@ -198,7 +200,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
               <Text 
                 style={[
                   styles.caloriesText, 
-                  { color: parseInt(entry.calories) >= 100 ? 'red' : 'green' }
+                  { color: parseInt(entry.calories) > 200 ? 'red' : 'green' }
                 ]}
               >
                 {entry.calories.toLocaleString()} cal

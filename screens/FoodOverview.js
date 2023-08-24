@@ -50,7 +50,7 @@ const FoodOverview = ({ navigation }) => {
   
     let count = 0; // Keep track of the number of valid records fetched
     for (const record of history) {
-      if (count >= 3) break; // Fetch only the 10 latest records
+      if (count >= 7) break; // Fetch only the 10 latest records
       
       try {
         const foodDetails = await getFoodDetails(record.foodId, record.type);

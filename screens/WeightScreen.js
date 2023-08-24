@@ -171,7 +171,6 @@ const WeightScreen = ({ navigation }) => {
         { merge: true }
       );
       toggleEditTarget();
-      Alert.alert("Success", "Weight target updated successfully");
     } catch (error) {
       Alert.alert("Error", "Failed to update weight target");
     }
@@ -281,7 +280,7 @@ const WeightScreen = ({ navigation }) => {
                     onPress={confirmChange}
                     style={styles.confirmButton}
                   >
-                    <Text style={styles.buttonText}>Confirm</Text>
+                    <Text style={styles.buttonText}>Set</Text>
                   </TouchableOpacity>
                 </View>
               ) : (

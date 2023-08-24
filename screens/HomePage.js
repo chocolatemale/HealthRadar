@@ -51,11 +51,11 @@ const HomePage = ({ navigation }) => {
   useFocusEffect(
   React.useCallback(() => {
     // Uncomment this if you want Recently Viewed to update each time Overview is in focus
-    // const fetchAndSetRecentFood = async () => {
-    //   const food = await fetchMostRecentVisited();
-    //   setRecentFood(food);
-    // };
-    // fetchAndSetRecentFood();
+    const fetchAndSetRecentFood = async () => {
+      const food = await fetchMostRecentVisited();
+      setRecentFood(food);
+    };
+    fetchAndSetRecentFood();
 
     const fetchUser = async () => {
       const userRepo = getUserRepo();
@@ -144,14 +144,14 @@ const HomePage = ({ navigation }) => {
   }
   
   // Comment if you want Recently Viewed to update each time it is in focus
-  useEffect(() => {
-    const fetchAndSetRecentFood = async () => {
-        const food = await fetchMostRecentVisited();
-        setRecentFood(food);
-    };
+  // useEffect(() => {
+  //   const fetchAndSetRecentFood = async () => {
+  //       const food = await fetchMostRecentVisited();
+  //       setRecentFood(food);
+  //   };
     
-    fetchAndSetRecentFood();
-  }, []);
+  //   fetchAndSetRecentFood();
+  // }, []);
 
   return (
     <View style={styles.container}>

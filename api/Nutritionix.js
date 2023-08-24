@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const API_ENDPOINT = "https://trackapi.nutritionix.com/v2";
-const APP_ID = "bedd6631";
-const API_KEY = "47cebbf4a50c4052f76587b02320ee70";
+const APP_ID = "ce046c3d";
+const API_KEY = "fbb84e7fedec48dea3f711cda127b279";
 
 const client = axios.create({
   baseURL: API_ENDPOINT,

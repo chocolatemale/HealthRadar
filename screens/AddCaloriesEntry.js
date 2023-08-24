@@ -74,14 +74,36 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
 
   const handleConfirm = async () => {
     // Check if food (description) or calories is empty
-    if (!food.trim() || !amount.trim() || isNaN(Number(amount))) {
-      Alert.alert('Validation Error', 'Description and calories should be valid and cannot be empty.');
+    // Check if food is empty or just whitespace
+    if (!food.trim()) {
+      Alert.alert('Validation Error', 'Description cannot be empty.');
       return;
     }
+
+    // Check if amount is a valid number
+    if (!amount) {
+      Alert.alert('Validation Error', 'Calories should be valid and cannot be empty.');
+      return;
+    }
+
+    // Check if amount is a valid number
+    if (isNaN(Number(amount))) {
+      Alert.alert('Validation Error', 'Calories should be valid and cannot be empty.');
+      return;
+    }
+
   
     // If weight is empty, default it to 0
-    const finalWeight = typeof weight === 'string' ? (weight.trim() ? Number(weight) : 0) : 0;
+    let finalWeight;
 
+    if (selectedEntry && (typeof weight !== 'string' || !weight.trim())) {
+        // If we are updating and no weight is provided, retain the original weight
+        finalWeight = selectedEntry.weight;
+    } else {
+        // If weight is empty or not a string, default it to 0
+        finalWeight = typeof weight === 'string' ? (weight.trim() ? Number(weight) : 0) : 0;
+    }
+    
     if (image) {
       try {
           const uploadedImageUrl = await uploadImageToFirebase(image);
@@ -187,6 +209,10 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
     setLoadingLocation(false);
   };
 
+  const handleLongPress = (event) => {
+    const { latitude, longitude } = event.nativeEvent.coordinate;
+    setLocation({ latitude, longitude });
+  };
 
   const selectPictureFromLibrary = async () => {
     let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -350,6 +376,7 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
                   latitudeDelta: 0.005,
                   longitudeDelta: 0.005,
               }}
+              onLongPress={handleLongPress}
           >
               <Marker
                   coordinate={location}
@@ -490,7 +517,7 @@ const styles = StyleSheet.create({
   },
   map: {
     width: '100%',
-    height: 100,
+    height: 200,
     marginBottom: 10,
   },
   rowContainer: {

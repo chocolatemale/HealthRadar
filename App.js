@@ -4,9 +4,12 @@ import LoginPage from "./screens/LoginPage";
 import { getFirebaseRepo, getCaloriesGoalRepo } from "./repos/FirebaseRepo";
 import { getUserRepo } from "./repos/UserRepo";
 import { auth } from './firebase'; // Import your Firebase auth module
+import { LogBox } from 'react-native';
 
 export default function App() {
   const [userId, setUserId] = useState(null);
+  LogBox.ignoreLogs(['Warning: ...']); // Ignore log notification by message
+  LogBox.ignoreAllLogs();//Ignore all log notifications  const [userId, setUserId] = useState(null);
   const firebaseClient = {
     foodRepo: getFirebaseRepo("food", userId),
     caloriesGoalRepo: getCaloriesGoalRepo(userId)  // Added this line
