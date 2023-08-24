@@ -5,6 +5,7 @@ import { getFirebaseRepo } from "../repos/FirebaseRepo";
 import { auth } from "../firebase"; // Assuming this is how you've set up Firebase auth in your app.
 import { getFoodDetails
  } from '../api/Nutritionix';
+ 
 const FoodOverview = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [foods, setFoods] = useState([]);
