@@ -1,5 +1,5 @@
 # HealthRadar - A Health App
-## [Link to Demo](https://youtu.be/UTQro-D-H08)
+## [Link to Demo](https://www.youtube.com/watch?v=CIyfqncPND0)
 
 ## Authors: Wenzheng Liao, Yi Zheng
 This application allows users to track their food and calorie intake, set a weight goal and monitor their weight trend, and check for food nutrition details from the world's best nutrition information API.
