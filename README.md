@@ -7,7 +7,7 @@ This application allows users to track their food and calorie intake, set a weig
 - **Camera use:** Implemented. Users can take a picture or select one from their media library.
 - **Location use:** Implemented. Users can capture their current location and add to a food entry.
 - **Authentication:** Implemented in this iteration. Firebase Authentication.
-- **Notification:** Not implemented in this iteration. Plan to include in next iteration.
+- **Notification:** Implemented in this iteration. The App will push local notification to remind user to log their weight and food data.
 - **External API use:** Implemented in this iteration. Nutritionix API to fetch food and food details.
 
 ## Getting Started:
