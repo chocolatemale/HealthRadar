@@ -79,7 +79,7 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
     }
   
     // If weight is empty, default it to 0
-    const finalWeight = weight.trim() ? Number(weight) : 0;
+    const finalWeight = typeof weight === 'string' ? (weight.trim() ? Number(weight) : 0) : 0;
 
     if (image) {
       try {

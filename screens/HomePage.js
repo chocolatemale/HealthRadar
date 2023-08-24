@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEnvelope, faWeight, faClock, faAppleAlt } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faWeight, faClock, faAppleAlt, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect } from 'react';
 import { getUserRepo } from '../repos/UserRepo'; // Make sure the path is correct
 import { auth } from '../firebase';
@@ -11,8 +11,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import {getCaloriesGoalRepo} from '../repos/FirebaseRepo'
 
 const HomePage = ({ navigation }) => {
-  const today = 880; // Example value for today's calories
-  const target = 1200; // Example value for target calories
   const dayStreak = 23; // Example value for days streak
   const [user, setUser] = useState({});
   const currentUserEmail = auth.currentUser && auth.currentUser.email;
@@ -173,25 +171,29 @@ const HomePage = ({ navigation }) => {
       <TouchableOpacity
           style={styles.caloriesTodayContainer}
           onPress={() => {
-              navigation.navigate('Daily');
+            navigation.navigate('Daily');
           }}
       >
-          <Text style={styles.caloriesToday}>Calories Daily</Text>
-          <View style={styles.donutContainer}>
-              <View style={[styles.donut, styles.goalBackground]} />
-              <View 
-                  style={[
-                      styles.donut, 
-                      styles.caloriesTodayStyle,
-                      { clipPath: `inset(0% ${(1 - (totalCaloriesToday / caloriesGoal)) * 100}% 0% 0%)` }
-                  ]}
-              />
-              <Text style={styles.centeredText}>
-                  {`${totalCaloriesToday - caloriesGoal}`}
+          <Text style={styles.caloriesToday}>Calories Today</Text>
+          
+          {/* New Component for Displaying Remaining/Exceeded Calories */}
+          <View style={styles.calorieDifferenceContainer}>
+              <Text style={[
+                  styles.calorieDifferenceNumber, 
+                  (caloriesGoal - totalCaloriesToday) > 0 ? styles.positive : styles.negative
+              ]}>
+                  {Math.abs(caloriesGoal - totalCaloriesToday)} cal
+              </Text>
+              <Text style={styles.calorieDifferenceText}>
+                  {(caloriesGoal - totalCaloriesToday) > 0 ? "remaining" : "exceeded"}
               </Text>
           </View>
-      </TouchableOpacity>
 
+          
+          <Text style={styles.caloriesDetail}>
+              Consumed: {totalCaloriesToday} cal / Target: {caloriesGoal} cal
+          </Text>
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.streakCard}
         onPress={() => navigation.navigate('DaysStreak')}
@@ -402,7 +404,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',  // This ensures the buttons are centered vertically.
     width: '100%',        // This makes sure the buttons occupy the full width of the card.
   },
-});
+  caloriesDetail: {
+    fontSize: 14,
+    color: "gray",
+  },
+  calorieDifferenceContainer: {
+    flexDirection: 'row', 
+    alignItems: 'baseline', // aligns the big number and the small text at their base
+    marginBottom: 10,
+    width: '100%', // ensures the container takes the full width of its parent
+  },
+  calorieDifferenceNumber: {
+    fontWeight: 'bold',
+    fontSize: 24, // big number
+  },
+  calorieDifferenceText: {
+    fontSize: 14, // smaller font size
+    color: "gray", 
+    marginLeft: 5,
+  },
+  positive: {
+    color: '#4CAF50', // soft green color
+  },
+  negative: {
+    color: '#FF5252', // soft red color
+  },
+  });
 
 export default HomePage;
 
