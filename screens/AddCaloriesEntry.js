@@ -26,6 +26,7 @@ import { Alert } from 'react-native';
 import { auth, storage } from '../firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as Notifications from 'expo-notifications';
 
 
 const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
@@ -121,7 +122,8 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
             // Optionally, inform the user about the error with a Toast or Alert
         }
     }
-
+    // Check and possibly ask for notification permissions
+    checkNotificationPermission();
     navigation.navigate("ViewCaloriesRecord");
 };
 
@@ -204,7 +206,62 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
     }
   };
   
-
+  const scheduleCaloriesNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Log Your Calories Intake",
+        body: "Remember to record your calories intake for this mealtime in the HealthRadar app!",
+      },
+      trigger: {
+        hour: 9, // For 9 AM
+        minute: 0,
+        repeats: true,
+      },
+    });
+  
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Log Your Calories Intake",
+        body: "It's lunchtime! Remember to record your calories intake in the HealthRadar app!",
+      },
+      trigger: {
+        hour: 13, // For 1 PM
+        minute: 0,
+        repeats: true,
+      },
+    });
+  
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Log Your Calories Intake",
+        body: "Had your dinner? Don't forget to log your calories in the HealthRadar app!",
+      },
+      trigger: {
+        hour: 19, // For 7 PM
+        minute: 0,
+        repeats: true,
+      },
+    });
+  };
+  
+  const checkNotificationPermission = async () => {
+    const settings = await Notifications.getPermissionsAsync();
+    if (
+      settings.granted ||
+      settings.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+    ) {
+      scheduleCaloriesNotification();
+    } else {
+      const request = await Notifications.requestPermissionsAsync();
+      if (
+        request.granted ||
+        request.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
+      ) {
+        scheduleCaloriesNotification();
+      }
+    }
+  };
+  
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Date Input */}

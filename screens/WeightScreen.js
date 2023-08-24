@@ -33,6 +33,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import * as Notifications from 'expo-notifications';
 
 const WeightScreen = ({ navigation }) => {
   const [weightTarget, setWeightTarget] = useState("");
@@ -74,6 +75,32 @@ const WeightScreen = ({ navigation }) => {
     fetchWeightData(); // Call fetchWeightData inside the useEffect
   }, []);
 
+  useEffect(() => {
+    // Check if permission is granted and schedule notification
+    const checkNotificationPermission = async () => {
+      const settings = await Notifications.getPermissionsAsync();
+      if (settings.granted || settings.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL) {
+        scheduleNotification();
+      }
+    };
+
+    checkNotificationPermission();
+  }, []);
+
+  const scheduleNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Log Your Weight",
+        body: "It's time to log your weight for today in HealthRadar app!",
+      },
+      trigger: {
+        hour: 0,
+        minute: 7,
+        repeats: true,
+      },
+    });
+  };
+
   const handleSave = async () => {
     if (parseFloat(weightTarget) > 200 || parseFloat(latestWeight) > 200) {
       Alert.alert("Error", "Weight values must be under 200kg");
@@ -94,6 +121,28 @@ const WeightScreen = ({ navigation }) => {
       fetchWeightData(); // Refresh the graph by fetching data again after saving
     } catch (error) {
       Alert.alert("Error", "Failed to save entry");
+    }
+
+    // Check for notifications permission and request if not determined
+    const settings = await Notifications.getPermissionsAsync();
+    if (settings.status === 'undetermined') {
+      const permission = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: true,
+          allowSound: true,
+          allowDisplayInCarPlay: true,
+          allowCriticalAlerts: true,
+          provideAppNotificationSettings: true,
+          allowProvisional: true,
+        },
+      });
+
+      if (permission.status === 'granted') {
+        scheduleNotification();
+      }
+    } else if (settings.status === 'granted') {
+      scheduleNotification();
     }
   };
 
@@ -146,7 +195,7 @@ const WeightScreen = ({ navigation }) => {
       );
     }
   };
-
+  
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
