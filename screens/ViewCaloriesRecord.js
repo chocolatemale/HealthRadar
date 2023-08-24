@@ -234,6 +234,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
         </View>
 
         <View style={styles.caloriesContainer}>
+        {caloriesGoal !== null && (
         <Text 
           style={[
             styles.totalText, 
@@ -242,6 +243,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
         >
           {`${totalCalories.toLocaleString()} / ${caloriesGoal.toLocaleString()} cal`}
         </Text>
+        )}
         </View>
       </View>
     </View>
