@@ -201,7 +201,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
                   { color: parseInt(entry.calories) >= 100 ? 'red' : 'green' }
                 ]}
               >
-                {entry.calories} cal
+                {entry.calories.toLocaleString()} cal
               </Text>
             </TouchableOpacity>
           ))          
@@ -240,7 +240,7 @@ const ViewCaloriesRecord = ({ navigation, foodRepo, caloriesGoalRepo }) => {
             { color: totalCalories <= caloriesGoal ? 'green' : 'red' }
           ]}
         >
-          {`${totalCalories} / ${caloriesGoal} cal`}
+          {`${totalCalories.toLocaleString()} / ${caloriesGoal.toLocaleString()} cal`}
         </Text>
         </View>
       </View>

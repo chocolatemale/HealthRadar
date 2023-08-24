@@ -50,7 +50,7 @@ const FoodOverview = ({ navigation }) => {
   
     let count = 0; // Keep track of the number of valid records fetched
     for (const record of history) {
-      if (count >= 5) break; // Fetch only the 10 latest records
+      if (count >= 3) break; // Fetch only the 10 latest records
       
       try {
         const foodDetails = await getFoodDetails(record.foodId, record.type);
@@ -155,28 +155,31 @@ const FoodOverview = ({ navigation }) => {
 
     return (
       <TouchableOpacity 
-        style={[styles.listItem, styles.card]}
-        onPress={() => {
-          storeVisit(itemId, itemType, item.food_name); // Passing food_name as an argument
-          navigation.navigate('FoodDetails', { foodId: itemId, type: itemType, foodName: item.food_name });
-        }}
+          style={[styles.listItem, styles.card]}
+          onPress={() => {
+              storeVisit(itemId, itemType, item.food_name); 
+              navigation.navigate('FoodDetails', { foodId: itemId, type: itemType, foodName: item.food_name });
+          }}
       >
-        <Image
-          source={{ uri: item.photo && item.photo.thumb ? item.photo.thumb : 'default_thumbnail_url' }}
-          style={styles.foodImage}
-        />
-        <View style={styles.foodDetails}>
-          <Text style={styles.foodName}>{capitalize(item.food_name)}</Text>
-          <Text style={styles.foodBrand}>{item.brand_name || 'Common Food'}</Text>
-        </View>
-        <View style={styles.caloriesContainer}>
-          <Text style={[styles.caloriesText, item.nf_calories > 200 ? styles.caloriesRed : styles.caloriesGreen]}>
-            {item.nf_calories ? `${Math.round(item.nf_calories)} cal` : 'Click to view'}
-          </Text>
-        </View>
+          <Image
+              source={{ uri: item.photo && item.photo.thumb ? item.photo.thumb : 'default_thumbnail_url' }}
+              style={styles.foodImage}
+          />
+          <View style={styles.foodDetails}>
+              <Text style={styles.foodName}>{capitalize(item.food_name)}</Text>
+              <Text style={styles.foodBrand}>{item.brand_name || 'Common Food'}</Text>
+          </View>
+          <View style={styles.caloriesContainer}>
+              <Text style={[styles.caloriesText, item.nf_calories > 200 ? styles.caloriesRed : styles.caloriesGreen]}>
+                  {item.nf_calories ? `${Math.round(item.nf_calories)} cal` : 'Click to view'}
+              </Text>
+              <Text style={styles.servingSizeText}>
+                  {item.serving_qty ? item.serving_qty : 'N/A'} {item.serving_unit ? item.serving_unit : ''}
+              </Text>
+          </View>
       </TouchableOpacity>
-    );
-  };
+      );
+    };
 
   return (
     <View style={styles.container}>
@@ -333,6 +336,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,  // Reduced opacity
     shadowRadius: 2,  // Reduced blur radius
     elevation: 3  // Reduced elevation for Android
+  },
+  servingSizeText: {
+    fontSize: 13,
+    color: 'gray',
+    marginTop: 4  // add some margin to space it out from the calories
   },  
 });
 

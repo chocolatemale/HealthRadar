@@ -9,6 +9,32 @@ import { database } from '../firebase';
 import { getDocs, collection, query, where, orderBy } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import {getCaloriesGoalRepo} from '../repos/FirebaseRepo'
+import { getFirebaseRepo } from "../repos/FirebaseRepo";
+import { getFoodDetails
+} from '../api/Nutritionix';
+
+const fetchMostRecentVisited = async () => {
+  const userId = auth.currentUser.uid;
+  const visitRepo = getFirebaseRepo("visitedFoods", userId);
+  const history = await visitRepo.getAllObjects();
+
+  if (history.length) {
+    // Sort the history records based on the timestamp in descending order
+    history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    const mostRecent = history[0];
+    try {
+      const foodDetails = await getFoodDetails(mostRecent.foodId, mostRecent.type);
+      if (foodDetails && foodDetails.foods && foodDetails.foods[0]) {
+        return foodDetails.foods[0];
+      }
+    } catch (error) {
+      console.warn("Error fetching details for visited food:", mostRecent.foodId, error);
+      return null;
+    }
+  }
+  return null;
+};
 
 const HomePage = ({ navigation }) => {
   const dayStreak = 23; // Example value for days streak
@@ -20,9 +46,17 @@ const HomePage = ({ navigation }) => {
   const userId = auth.currentUser.uid;
   const [totalCaloriesToday, setTotalCaloriesToday] = useState(0);
   const [caloriesGoal, setCaloriesGoal] = useState(0);
-  
+  const [recentFood, setRecentFood] = useState(null);
+
   useFocusEffect(
   React.useCallback(() => {
+    // Uncomment this if you want Recently Viewed to update each time Overview is in focus
+    const fetchAndSetRecentFood = async () => {
+      const food = await fetchMostRecentVisited();
+      setRecentFood(food);
+    };
+    fetchAndSetRecentFood();
+
     const fetchUser = async () => {
       const userRepo = getUserRepo();
       const userData = await userRepo.getUserByEmail(currentUserEmail);
@@ -104,6 +138,21 @@ const HomePage = ({ navigation }) => {
     ? Math.min(1, Math.abs(((latestWeight - initialWeight) / (weightTarget - initialWeight))))
     : 0;
   
+  
+  function capitalizeWords(string) {
+    return string.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  }
+  
+  // Comment if you want Recently Viewed to update each time it is in focus
+  // useEffect(() => {
+  //   const fetchAndSetRecentFood = async () => {
+  //       const food = await fetchMostRecentVisited();
+  //       setRecentFood(food);
+  //   };
+    
+  //   fetchAndSetRecentFood();
+  // }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.searchBarContainer}>
@@ -182,7 +231,7 @@ const HomePage = ({ navigation }) => {
                   styles.calorieDifferenceNumber, 
                   (caloriesGoal - totalCaloriesToday) > 0 ? styles.positive : styles.negative
               ]}>
-                  {Math.abs(caloriesGoal - totalCaloriesToday)} cal
+                  {Math.abs(caloriesGoal - totalCaloriesToday).toLocaleString()} cal
               </Text>
               <Text style={styles.calorieDifferenceText}>
                   {(caloriesGoal - totalCaloriesToday) > 0 ? "remaining" : "exceeded"}
@@ -191,15 +240,42 @@ const HomePage = ({ navigation }) => {
 
           
           <Text style={styles.caloriesDetail}>
-              Consumed: {totalCaloriesToday} cal / Target: {caloriesGoal} cal
+            Consumed: {totalCaloriesToday.toLocaleString()} cal / Target: {caloriesGoal.toLocaleString()} cal
           </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.streakCard}
-        onPress={() => navigation.navigate('DaysStreak')}
-      >
-        <Text style={styles.daysStreak}>Days Streak</Text>
-        <Text style={styles.streakNumber}>{dayStreak}</Text>
+        style={styles.recentlyViewedCard}
+        onPress={() => {
+            navigation.navigate('Nutrition');
+        }}>
+        <Text style={styles.caloriesToday}>Recently Viewed</Text>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.foodLeftContainer}>
+                <Image
+                  source={{ uri: recentFood && recentFood.photo && recentFood.photo.thumb ? recentFood.photo.thumb : 'https://via.placeholder.com/150' }}
+                  style={styles.foodImage}
+                />
+                <View style={styles.foodDetails}>
+                <Text style={styles.foodName}>
+                  {recentFood && recentFood.food_name ? capitalizeWords(recentFood.food_name) : 'N/A'}
+                </Text>
+                    <Text style={styles.foodBrand}>{recentFood && recentFood.brand_name ? recentFood.brand_name : 'Common Food'}</Text>
+                </View>
+            </View>
+
+            <View style={styles.foodRightContainer}>
+                <Text style={[
+                    styles.caloriesText,
+                    recentFood && recentFood.nf_calories && recentFood.nf_calories >= 200 ? styles.caloriesRed : styles.caloriesGreen
+                ]}>
+                    {recentFood && recentFood.nf_calories ? `${Math.round(recentFood.nf_calories)} cal` : 'N/A'}
+                </Text>
+                <Text style={styles.servingSize}>
+                    {recentFood && recentFood.serving_qty ? recentFood.serving_qty : 'N/A'} {recentFood && recentFood.serving_unit ? recentFood.serving_unit : ''}
+                </Text>
+            </View>
+        </View>
       </TouchableOpacity>
       </ScrollView>
     </View>
@@ -278,7 +354,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',  // Light grey for clearer distinction
     height: 20,
     borderRadius: 5,
-    position: 'relative'  // This is needed for absolute positioning of the weight texts
+    position: 'relative',  // This is needed for absolute positioning of the weight texts
+    elevation: 5,  // Android shadow
+    shadowColor: 'black',  // iOS shadow
+    shadowOffset: { width: 0, height: 2 },  // iOS shadow
+    shadowOpacity: 0.25,  // iOS shadow
+    shadowRadius: 3.84,  // iOS shadow
   },
   goalBar: {
     height: 20,
@@ -429,7 +510,53 @@ const styles = StyleSheet.create({
   negative: {
     color: '#FF5252', // soft red color
   },
+  recentlyViewedCard: {
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
+    marginTop: 5,
+    marginBottom: 5,
+    marginLeft: 3,
+    marginRight: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 3,
+  },
+  foodLeftContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+  },
+  foodImage: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+  },
+  foodDetails: {
+      marginLeft: 10,
+  },
+  foodName: {
+      fontWeight: 'bold',
+  },
+  foodType: {
+      color: 'gray',
+  },
+  foodRightContainer: {
+      flex: 1,
+      alignItems: 'flex-end',
+  },
+  caloriesText: {
+      fontWeight: 'bold',
+  },
+  caloriesRed: {
+      color: '#FF5252',
+  },
+  caloriesGreen: {
+      color: '#4CAF50',
+  },
+  servingSize: {
+      color: 'gray',
+  },
   });
 
 export default HomePage;
-
