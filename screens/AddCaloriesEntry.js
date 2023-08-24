@@ -73,13 +73,13 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
 
   const handleConfirm = async () => {
     // Check if food (description) or calories is empty
-    if (!food.trim() || !amount.trim()) {
-        Alert.alert('Validation Error', 'Description and calories cannot be empty.');
-        return;
+    if (!food.trim() || !amount.trim() || isNaN(Number(amount))) {
+      Alert.alert('Validation Error', 'Description and calories should be valid and cannot be empty.');
+      return;
     }
-
+  
     // If weight is empty, default it to 0
-    const finalWeight = weight.trim() ? weight : "0";
+    const finalWeight = weight.trim() ? Number(weight) : 0;
 
     if (image) {
       try {
@@ -93,13 +93,14 @@ const AddCaloriesEntry = ({ route, foodRepo, navigation }) => {
     }
 
     const entry = {
-        date: selectedDate,
-        name: food,
-        calories: amount,
-        weight: finalWeight,
-        location: location,
-        image: image
+      date: selectedDate,
+      name: food,
+      calories: Number(amount),
+      weight: finalWeight,
+      location: location,
+      image: image
     };
+  
 
     if (selectedEntry) {
         // We are in update mode

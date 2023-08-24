@@ -8,6 +8,7 @@ import { auth } from '../firebase';
 import { database } from '../firebase';
 import { getDocs, collection, query, where, orderBy } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
+import {getCaloriesGoalRepo} from '../repos/FirebaseRepo'
 
 const HomePage = ({ navigation }) => {
   const today = 880; // Example value for today's calories
@@ -19,7 +20,9 @@ const HomePage = ({ navigation }) => {
   const [latestWeight, setLatestWeight] = useState(null);
   const [weightTarget, setWeightTarget] = useState(null);
   const userId = auth.currentUser.uid;
-
+  const [totalCaloriesToday, setTotalCaloriesToday] = useState(0);
+  const [caloriesGoal, setCaloriesGoal] = useState(0);
+  
   useFocusEffect(
   React.useCallback(() => {
     const fetchUser = async () => {
@@ -51,11 +54,45 @@ const HomePage = ({ navigation }) => {
       }
       
     };
+    
 
     if (currentUserEmail) {
       fetchUser();
       fetchWeightData();
-    }
+    };
+
+    const fetchCaloriesData = async () => {
+      const today = new Date();
+      const startOfDay = new Date(today);
+      startOfDay.setHours(0, 0, 0, 0);
+    
+      const endOfDay = new Date(today);
+      endOfDay.setHours(23, 59, 59, 999);
+    
+      const userFoodCollection = collection(database, "food");
+      const todayQuery = query(
+        userFoodCollection,
+        where("userId", "==", userId),
+        where("date", ">=", startOfDay),
+        where("date", "<=", endOfDay)
+      );
+      
+      const todaySnapshot = await getDocs(todayQuery);
+      const todayTotalCalories = todaySnapshot.docs.reduce(
+        (total, doc) => total + doc.data().calories, 0
+      );
+    
+      setTotalCaloriesToday(todayTotalCalories);
+    };    
+
+    const fetchCaloriesGoal = async () => {
+      const goalRepo = getCaloriesGoalRepo(userId);
+      const goal = await goalRepo.getCaloriesGoal();
+      setCaloriesGoal(goal || 0);
+    };
+
+    fetchCaloriesData();
+    fetchCaloriesGoal();
 
     // Return a cleanup function to reset any state or stop side-effects.
     return () => {
@@ -134,14 +171,27 @@ const HomePage = ({ navigation }) => {
           </View>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.caloriesTodayContainer}
-        onPress={() => {
-          navigation.navigate('Daily');
-        }}
+          style={styles.caloriesTodayContainer}
+          onPress={() => {
+              navigation.navigate('Daily');
+          }}
       >
-        <Text style={styles.caloriesToday}>Calories Daily</Text>
-        <Text style={styles.placeholderChart}>[Pie Chart Placeholder]</Text>
+          <Text style={styles.caloriesToday}>Calories Daily</Text>
+          <View style={styles.donutContainer}>
+              <View style={[styles.donut, styles.goalBackground]} />
+              <View 
+                  style={[
+                      styles.donut, 
+                      styles.caloriesTodayStyle,
+                      { clipPath: `inset(0% ${(1 - (totalCaloriesToday / caloriesGoal)) * 100}% 0% 0%)` }
+                  ]}
+              />
+              <Text style={styles.centeredText}>
+                  {`${totalCaloriesToday - caloriesGoal}`}
+              </Text>
+          </View>
       </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.streakCard}
         onPress={() => navigation.navigate('DaysStreak')}
